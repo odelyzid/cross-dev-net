@@ -15,7 +15,7 @@
 | [`build/`](build/) | Extra build logs / ASM68K outputs (artifacts gitignored) |
 | [`server/`](server/) | `mixnetd` — TCP protocol v0 + extensions — [server/README.md](server/README.md) |
 | [`clients/`](clients/) | Amiga, Win9x, POSIX, **Genesis** (ROM + line layer), N64/PSX/PS2 stubs; shared headers in [`include/`](clients/include/) — [clients/README.md](clients/README.md) |
-| [`docs/`](docs/) | [Changelog](docs/changelog.md), [toolchains (PSYQ, libdragon)](docs/TOOLCHAINS.md), [repo layout vs mixnet](docs/REPO_LAYERS.md) |
+| [`docs/`](docs/) | [Index](docs/README.md), [changelog](docs/changelog.md), [toolchains](docs/TOOLCHAINS.md), [repo layers](docs/REPO_LAYERS.md) |
 | [`.cursor/`](.cursor/) | AI/editor documentation (protocol, platforms, 68k) |
 
 Protocol: [`.cursor/.documentation/cross-net/protocol-v0.mdc`](.cursor/.documentation/cross-net/protocol-v0.mdc)
