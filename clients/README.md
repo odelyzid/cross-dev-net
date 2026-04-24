@@ -10,7 +10,7 @@ Console / embedded clients for the same **line protocol** as [`../server`](../se
 | [`amiga/`](amiga/) | **Amiga 500 / 2000** (68000) + AmigaOS 3.x TCP | Same model as POSIX; see [amiga/README.md](amiga/README.md). |
 | [`genesis/`](genesis/) | **Sega Mega Drive** — **ROM (OzWorld) + serial bridge** | SGDK + re-exported `mixnet_line` from `common/`. |
 | [`n64/`](n64/) | Nintendo 64 | `mixnet_stub.c` + `common/mixnet_line` self-test; wire `stub_tx` to your link. |
-| [`psx/`](psx/) | PlayStation 1 (R3000) | Same pattern as N64; PSYQ / Nugget; see [docs/TOOLCHAINS.md](../docs/TOOLCHAINS.md). |
+| [`psx/`](psx/) | PlayStation 1 (R3000) | **Mixnet Navigator** (`mixnet_navigator.c` + `mixnet_stub.c`): location bar, menu, ROOMS/WHO/MSG; needs bridge; [psx/README.md](psx/README.md). |
 | [`ps2/`](ps2/) | PlayStation 2 (EE) | Stub + README; ps2ip / bridge TBD. |
 | [`m68k-amiga/`](m68k-amiga/) | Pointers | [BUILD.txt](m68k-amiga/BUILD.txt) — points at `amiga/`. |
 

@@ -9,5 +9,5 @@
 **Also useful**
 
 - **Protocol (v0):** [../.cursor/.documentation/cross-net/protocol-v0.mdc](../.cursor/.documentation/cross-net/protocol-v0.mdc) — line-oriented ASCII, same wire as **mixnetd**.
-- **Shared C:** [`clients/include/`](../clients/include/) (`MIXNET_DEFAULT_PORT`, `MX_*` tokens), [`clients/common/`](../clients/common/) (`mixnet_line` for byte streams on Genesis, N64, PS1).
+- **Shared C:** [`clients/include/`](../clients/include/) (`MIXNET_DEFAULT_PORT`, `MX_*` tokens), [`clients/common/`](../clients/common/) (`mixnet_line` for byte streams on Genesis, N64, PS1). **PS1** adds [`clients/psx/mixnet_navigator.c`](../clients/psx/mixnet_navigator.c) (Netscape-style “Mixnet Navigator” UI over the same protocol).
 - **Upstream:** [github.com/odelyzid/cross-dev-net](https://github.com/odelyzid/cross-dev-net) — public mirror of this worktree; root [README.md](../README.md) has build commands.
