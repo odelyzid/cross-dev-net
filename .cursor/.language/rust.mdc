@@ -1,0 +1,23 @@
+# Rust Language Rules
+
+## Intent
+Pick Rust when memory safety and concurrency guarantees are priorities. Keep modules idiomatic, own dependencies via `Cargo.toml`, and rely on the standard `cargo fmt`/`clippy` cycle.
+
+## Toolchain & Workflow
+- Use `rustup` to pin toolchains (e.g., `stable` or `beta`) and document the channel inside `rust-toolchain.toml`.
+- All builds should run through `cargo build --workspace` with explicit `--release` artifacts described in `.documentation/menu.mdc`.
+
+## Project Structure
+- Keep library crates under `crates/`, binary crates under `bin/`, and document entry points in `README.md`.
+- Share common types through workspace crates; reference them from `.documentation/projects.md`.
+
+## Safety Rules
+- Favor `Result`/`Option` chaining over panics; handle errors at the boundary and log meaningful context.
+- Enforce formatting via `cargo fmt` and lint with `cargo clippy --all-targets --all-features`.
+- Document unsafe blocks with the required Justification-Oriented Comments (JOCs) so Cursor can describe them clearly in the menu.
+
+## Validation & Replication
+1. Run `cargo test` with `--workspace`.
+2. Capture profiling build logs for `cargo bench` or `cargo tarpaulin` (coverage) and mention their storage path in `.documentation/projects.md`.
+3. Use `.repliaction/replication.mdc` to store command-line templates that reproduce the workspace structure and cache locations.
+

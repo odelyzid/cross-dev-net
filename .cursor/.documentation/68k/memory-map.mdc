@@ -1,0 +1,34 @@
+# 68k Memory Map & Hardware Addresses
+
+## Purpose
+List the canonical hardware addresses for Amiga chipset registers, Chip RAM, Copper lists, Paula DMA, and mirror regions so developers know where to place data structures and DMA buffers.
+
+-## Chip RAM Blocks
+- `0x000000 - 0x0FFFFF`: Chip RAM (Agnus-managed). Keep Copper lists, bitplanes, and audio tables here for predictable DMA.
+- `0xA00000 - 0xA0FFFF`: ROM + Kickstart, with custom chip registers starting near `0x00DFF000`.
+- `0xC00000 - 0xC0FFFF`: On Sega Genesis, VDP VRAM/CRAM/VSRAM windows controlled via mirrored I/O ports.
+
+## Hardware Register Table
+| Address | Name | Notes |
+| --- | --- | --- |
+| `0x00DFF000` | `INTENAR`/`INTENA` | Interrupt enable/mask (bitfield for VBlank/HBlank). |
+| `0x00DFF060` | `BPLCON0` | Bitplane depth, sprite enable, and palette mixing. |
+| `0x00DFF0A0` | `DIWSTRT/DIWSTOP` | Display window start/stop; note typical overscan values. |
+| `0x00DFF0E0` | `BPLCON1`/`BPLCON2` | Palette ramp and sprite priority toggles. |
+| `0x00DFF100` | `COP1L`/`COP2L` | Copper instruction pointers; mention `COPJMP` offsets. |
+| `0x00DFF180` | `BPL1PTH` | Bitplane pointer base; following registers cover up to BPL7. |
+| `0x00DFF1C0` | `SPRITE DATA / CONTROL` | 8 sprite entries with X/Y/PLC pointers; detail their layout. |
+| `0x00DFF200` | `AUD0LCH` | Paula DMA channel 0 long word pointer; channels increment by `0x20`. |
+| `0x00DFF220` | `AUD0LCL` | Low word pointer, length, and period registers. |
+| `0x00DFF260` | `AUD0VOL`/`AUD1VOL` | Mixer volumes; note that each channel has two volume registers. |
+| `0x00DFF300` | `IDE / Paula extras` | IDE control/status and extra audio mixer registers. |
+
+## VDP/Genesis Addresses
+- `0xC00000 - 0xC0001F`: VDP registers (data + control); mention data port mirroring for VRAM writes.
+- `0xC00000`: VDP data port; the control word must be written to `0xC00004` before transferring VRAM.
+- `0xC00004`: VDP control port; include command format bits for register access and DMA operations.
+- `0xC00008`: VDP FIFO status/CRAM port alias for palette updates.
+
+## Organization Tips
+- Keep register cheatsheets under `xrefs/` subfolders whenever you add deeper tables; link them back here using relative paths.
+- When replicating these maps for new hardware (e.g., VDP clones), add a sibling file (`memory-map-genesis.mdc`) rather than overloading this doc so the tree stays clean.

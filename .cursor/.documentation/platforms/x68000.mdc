@@ -1,0 +1,13 @@
+# Sharp X68000 Playbook
+
+## Intent
+- Treat the X68000 as the high-end sibling of the 68k family. Reuse the `OzWorldGenesis` state machine but adapt visuals to the X68000 framebuffer, leveraging its richer palette and copper-like capabilities. Reference the X68000 notes at [ChibiAkumas X68000](https://www.chibiakumas.com/68000/x68000.php) and general tips from [AssemblyTutorial 68k](https://www.assemblytutorial.com/68000/).
+
+## Ruleset
+1. **Video** – Map each demo stage into the X68000’s native 512x240 framebuffer; use DMA-friendly transfer loops and avoid hitting the Copper too frequently. When animating checkerboards, prefer direct memory writes to VRAM rather than repeated clears.
+2. **Build** – Compile via `gcc68k` + `vasm` with the X68000 linker script; maintain the same `main.c` entry but wrap hardware-specific calls into inline helpers.
+3. **Palette** – Respect the platform’s 12-bit palette per RGB channel; keep `phasingColors` scaled accordingly and stage copper bars within the 0-4095 CRAM range.
+4. **Audio** – Mirror the SGDK music pipeline by using the X68000 PCM channels, and keep logging statements per state so the behavior is traceable—the same `renderDemoState` transitions should appear in the logs.
+
+## Notes
+- Document the memory layout and build commands alongside the Amiga notes so the Cursor tour sees the whole cross-target family when exploring `.documentation/platforms/index.mdc`.

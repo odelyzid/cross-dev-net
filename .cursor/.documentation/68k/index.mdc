@@ -1,0 +1,17 @@
+# Motorola 68000 Deep Documentation
+
+## Purpose
+Document the low-level world around 68k-based Amiga/Genesis builds so the Cursor tour can explain the VDP/OCS/ECS/AGA chipsets, register layout, memory map, and instruction-level best practices. Keep each topic inside its own subdirectory so the hierarchy stays clean and searchable.
+
+## Directory Layout
+- `assembly-guide.mdc` – 68k-specific assemblers, directives, and macros plus a short checklist for structuring `.s` files.
+- `chipsets.mdc` – describe OCS/ECS/AGA differences, key chips (Agnus, Denise, Paula), DMA channels, and timing behavior.
+- `vdp.mdc` – map of VDP registers, command sequences, and sprite/plane tips for the Amiga and Genesis VDPs.
+- `memory-map.mdc` – canonical addresses for Chip RAM, BPL, copper lists, hardware registers, and mirrored regions.
+- `instructions.mdc` – curated layout of important 68k instructions, addressing modes, and conditional usage notes.
+
+## Maintenance Guidance
+- When adding more guides under `68k/`, place them alongside the ones above and keep filenames descriptive (`audio-chips.mdc`, `copper-lists.mdc`, etc.).
+- Each subdoc should link back to this index and mention the expected subdirectory under `games/m68k/`.
+- Keep tables sorted alphabetically (chipsets, registers) and mention emulator-relevant notes so future devs know where to look when building or debugging.
+- When you add emulator helper scripts or register cheat sheets, drop them here with descriptive names (`emulator-scripts.mdc`, `register-cheatsheet.mdc`), and update this index plus `.documentation/menu.mdc` so the tour highlights the new resource.

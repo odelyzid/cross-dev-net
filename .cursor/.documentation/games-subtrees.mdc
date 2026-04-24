@@ -1,0 +1,26 @@
+# Game Dev Subtrees
+
+## Purpose
+Summarize the filesystem layouts and workflow rules when creating classic-game projects for Motorola 68000-based hardware (Amiga 500/Sega Genesis) and R3000-based PlayStation targets. Keep this doc updated whenever a new subtree is added so the Cursor menu can explain where to drop assets and dev tools.
+
+## Subtree Layouts
+- **`games/m68k/` – Motorola 68000 / Amiga 500**  
+  - `src/` contains `.s` assembly modules and `linker.cmd` snippets.  
+  - `assets/` keeps tracker modules (`.mod`, `.xm`) plus palette data.  
+  - `build/` stores `kickstart.rom`-compatible binaries and `run-amiga.sh` helpers.  
+  - Follow `.language/assembly.mdc` for calling conventions; add subdirectory-specific notes when using Copper lists or Paula DMA.
+
+- **`games/genesis/` – Sega Genesis / Mega Drive**  
+  - Mirror `src/`/`assets/` but include `sc68` or `megadrive` tool configs that describe ROM headers.  
+  - Document VRAM bank layout and controller mappings in `notes/controllers.md`.  
+  - Use `genesis/Makefile` with `ninja` when assembling; mention the workflow in `.documentation/menu.mdc`.
+
+- **`games/psx/` – R3000 / PlayStation**  
+  - `src/` holds `.c`/.cpp files for driver logic plus `psx/libgpu` wrappers.  
+  - `toolchain/` lists `psxlink`, `psx-gcc` flags, and the target `PSYQ` versions used.  
+  - `assets/` organizes TIM textures, ADPCM samples, and system overlays.  
+  - Align validations with `.language/c.mdc`/`.language/cpp.mdc` for cross-compiling; call out `psxlink` steps in `scripts/psx-build.sh`.
+
+## Replication Notes
+- When replicating a subtree, add a snippet under `.repliaction/replication.mdc` noting that `games/<platform>/` directories come with their own `build/` helpers and emulator hooks.
+- Document any emulator or flashcart invocation scripts (e.g., `run-genesis.sh`, `run-psx.sh`) so they appear in the tour menu.

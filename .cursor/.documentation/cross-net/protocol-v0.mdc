@@ -1,0 +1,79 @@
+# 68mixCross Net Protocol — Version 0 (normative)
+
+## Transport
+- **TCP** only. One connection per client session.
+- **No TLS** in v0. Period Win9x stacks target plain sockets. Use only on **trusted LANs** or behind a modern reverse proxy that terminates TLS if you expose to the internet.
+- Default port **suggested**: `19677` (ASCII for `+` room vibe); implementations may override via config.
+
+## Framing
+- **Line-delimited text**: lines end with a single **LF** (`0x0A`). For compatibility, servers **should** accept **CRLF** (`0x0D 0x0A`) from clients and normalize to LF internally.
+- **Encoding**: **US-ASCII** for v0 commands and keywords. Payload text in `MSG` and `HELLO` **nickname** is ASCII printable (`0x20`–`0x7E`) unless both ends agree otherwise (document any extension in `projects.md`).
+- **Max line length**: **512 bytes** including the line terminator, measured before UTF-8 experiments. Longer lines: server **must** reply `ERR line_too_long` and **may** drop the connection.
+
+## Command grammar (client → server)
+- One verb per line, **uppercase**, first token. Additional tokens separated by **single spaces** unless noted.
+- Unknown verb → `ERR unknown_command`.
+
+### `HELLO <nickname>`
+- **nickname**: 1–32 chars, `[A-Za-z0-9_-]` only.
+- Success: `OK hello <session_id>` where `session_id` is opaque ASCII (no spaces).
+- Failure: `ERR nick_invalid` | `ERR nick_in_use`.
+
+### `JOIN <room>`
+- **room**: 1–32 chars, `[A-Za-z0-9_-]` only.
+- Success: `OK join <room>`.
+- Failure: `ERR no_such_room` (optional; server may auto-create) | `ERR not_hello`.
+
+### `MSG <text>`
+- **text**: remainder of line after first space following `MSG`; max length obeying max line.
+- Server **broadcasts** to other sessions in same room: `PRIVMSG <nick> <text>` (nick from `HELLO`).
+- Failure: `ERR not_in_room`.
+
+### `PING`
+- Server replies: `PONG` on same connection.
+
+### `QUIT`
+- Client may send; server closes TCP after `OK bye`.
+
+## Server → client (unsolicited)
+- `PRIVMSG <nick> <text>` — chat from another user in the room.
+- `INFO <text>` — server notices (joins, parts, motd). `text` is ASCII for v0.
+
+## Error replies
+- Pattern: `ERR <code>` where **code** is lowercase `snake_case` ASCII.
+- Examples: `unknown_command`, `line_too_long`, `nick_invalid`, `nick_in_use`, `not_hello`, `not_in_room`.
+
+## Session rules
+1. After connect, client **must** send `HELLO` before `JOIN` or `MSG`.
+2. Server **must** ignore `MSG` until successful `JOIN`.
+3. Idle: optional server-side timeout; if used, send `INFO idle_timeout` then close.
+
+## Threat model (v0)
+- **LAN party / lab**: acceptable as-is.
+- **WAN**: treat as **cleartext**; add TLS or SSH tunnel out of band; do not pretend v0 provides confidentiality or integrity.
+
+## mixnetd extensions (implemented by `server/` hub, optional for other servers)
+These share the same framing and `ERR` pattern; unknown servers may reply `ERR unknown_command`.
+
+### `PART`
+- No arguments. Leaves the current room; **must** have completed `HELLO` and be in a room.
+- Success: `OK part`.
+- Others in the room receive: `INFO <nick> left <room>`.
+- Failure: `ERR not_in_room` | `ERR unknown_command`.
+
+### `WHO`
+- No arguments. Lists peers in the **current** room (comma-separated nicks).
+- Success: `OK who <room> <nick1>,<nick2>,...`
+- Failure: `ERR not_in_room` | `ERR line_too_long` (if list would exceed safe size).
+
+### `ROOMS`
+- No arguments. Lists room names that currently have at least one joined session (unique, comma-separated). Requires `HELLO` first.
+- Success: `OK rooms` (empty list) or `OK rooms <r1>,<r2>,...`
+- Failure: `ERR not_hello`.
+
+### Join / disconnect behaviour (mixnetd)
+- Switching rooms with `JOIN <new>` notifies the **previous** room with `INFO <nick> left <old>` when `<old> != <new>`. Re-`JOIN`ing the **same** room does not re-broadcast join spam.
+- TCP close: others get `INFO <nick> left <room>` (same line shape as `PART`).
+
+### Idle timeout (mixnetd)
+- Environment variable `MIXNETD_IDLE_SEC=<seconds>`: if set, the server uses a read timeout; if no data arrives for that long, it sends `INFO idle_timeout` and closes the TCP session.

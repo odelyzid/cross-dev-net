@@ -1,0 +1,35 @@
+# Windows 95 / 98 Client — Checklist
+
+## Stack
+- **Winsock 1.1** (`WSAStartup(MAKEWORD(1,1), ...)`) for broad 95/98 compatibility; Winsock 2 optional on 98 if you need extra APIs.
+- Link against **`wsock32.lib`** for typical 32-bit builds; 16-bit builds use matching 16-bit Winsock import lib.
+- Call **`WSACleanup`** on exit; handle **`WSAECONNRESET`** and partial **`recv`** (TCP stream, not message boundaries).
+
+## Toolchains (period-accurate)
+- **Visual C++** 4.x–6.0: Win32 console or GUI; multithreaded CRT OK on 98; test `_beginthreadex` vs `CreateThread` for CRT safety.
+- **Borland C++ 5.x**: same Winsock headers; confirm project uses correct library path for `wsock32.lib`.
+- Target **ANSI** APIs unless you explicitly compile Unicode and run only on configured systems.
+
+## Build shape
+- Prefer **32-bit** x86 PE for simpler Winsock and less 16-bit thunk pain on 98.
+- If **16-bit**: separate project; document thunk DLLs and smaller stack limits.
+
+## UI modes
+- **Console + ANSI**: fast for BBS feel; use `SetConsoleTitle`, avoid assuming UTF-8 (see protocol v0 ASCII).
+- **GUI**: needs a **message pump**; put Winsock blocking in a worker thread and `PostMessage` to UI thread.
+
+## Testing matrix
+| Environment | Purpose |
+| --- | --- |
+| **86Box** / **PCem** | Known-good NIC drivers, reproducible installs. |
+| Real Pentium/K6 + NE2000-compatible | Timing and IRQ edge cases. |
+| Host listener | Any tool speaking **protocol v0** (e.g. netcat line echo for bring-up only). |
+
+## Verification
+1. `ping` IP from Win9x to host.
+2. Raw TCP connect to port; send `HELLO testuser` → expect `OK hello ...`.
+3. `JOIN lobby` → `OK join lobby`; second client → `MSG hi` → first sees `PRIVMSG`.
+
+## See also
+- `.documentation/cross-net/protocol-v0.mdc`
+- `.documentation/platforms/win9x.mdc`

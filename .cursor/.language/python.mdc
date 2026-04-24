@@ -1,0 +1,23 @@
+# Python Language Rules
+
+## Intent
+Use Python for orchestration, prototypes, and automation where clarity outweighs raw performance. Keep scripts idempotent and list dependencies explicitly.
+
+## Environment Setup
+- Create an isolated environment (`python -m venv .venv` or Poetry) and pin versions in `requirements.txt` or `pyproject.toml`.
+- Activate the environment before running commands; document activation patterns in `scripts/activate-guide.md` (referenced from `.documentation/menu.mdc`).
+
+## Structure & Style
+- Organize business logic under `src/` (use `package/__init__.py` to define exports) and keep CLI entry points in `cli/` or `scripts/`.
+- Follow `PEP 8` with `black` formatting and `ruff`/`flake8` linting; store config files at the repo root and mention them below.
+- Write docstrings for public functions; include usage examples in `docs/` so the Cursor tour can display them without running the code.
+
+## Execution & Testing
+1. `pip install -r requirements.txt` (or `poetry install`) within the activated environment.
+2. Run `pytest` with `-m` markers to limit slow suites and direct output to `reports/pytest.log`.
+3. Use `mypy --strict src` when typing is required and capture the report path in `.documentation/projects.md`.
+
+## Cursor Tips
+- The `.language/python.md` file should hyperlink to the `docs/` folder and mention any preflight scripts for generating data.
+- Mirror this template in `.repliaction/replication.mdc` if you replicate Python-based scaffolds (virtualenv commands, dependency snapshots).
+

@@ -1,0 +1,25 @@
+# Replication Rules
+
+## Purpose
+This file catalogs the repeatable routines (templates, commands, documentation links) that help you reproduce language workspaces and the tour menu described in `.documentation/menu.mdc`.
+
+## Replication Steps
+1. **Template sync** – Copy the language-specific scaffolds from `.language/` (headers, build scripts, doc snippets) into a new branch or workspace.
+2. **Toolchain pinning** – Document the compiler/interpreter versions (gcc, python, rustup) inside the generated `toolchain` file and mirror the notation shown in the language rule it came from.
+3. **Testing hooks** – Reuse the test harness pattern (e.g., `tests/run.sh`, `pytest`, `cargo test`) so the recorded outputs live in `reports/` and are referenced from `.documentation/projects.md`.
+4. **Fail-fast replication** – Add new repos to `.documentation/projects.md` immediately after scaffolding so the tour guide can direct teammates to verify that the replication succeeded.
+
+## Windows 9x cross-net client (Phase 1)
+- **VM**: Install Windows 95 or 98 in **86Box** or **PCem** with a NE2000-compatible NIC; bind TCP/IP to that adapter. OS media and licensing are your responsibility.
+- **Winsock**: Confirm **Winsock 1.1** (`wsock32.dll`) present after TCP/IP setup; note OS version (95 vs 98 SE) in `docs/changelog.md` or per-client README when code exists.
+- **Protocol smoke test** (against any v0-speaking TCP peer on the LAN):
+  1. From the host, run a listener on the agreed port (default suggested in `.documentation/cross-net/protocol-v0.mdc`).
+  2. From Win9x, `telnet <host-ip> <port>` or your test client: send `HELLO tester`, then `JOIN lobby`, then `MSG hello`.
+  3. Expect `OK` replies per protocol; second client should see `PRIVMSG` lines when one sends `MSG`.
+- **notes:** x86 32-bit target for simplest Winsock; 16-bit builds need a separate replication sheet.
+
+## Small Rules
+- Always update `.documentation/menu.mdc` after adding new languages or doc types; the menu is the tour map.
+- Keep replication tips short and executable: state `command` then `purpose` (one per bullet).
+- When sharing replication steps, note the target OS/architecture under `notes:` to avoid mixing Unix/Windows expectations.
+

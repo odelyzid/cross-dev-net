@@ -1,0 +1,28 @@
+# Assembly Language Rules
+
+## Intent
+Reserve pure assembly for platform-specific kernels, intimately performance-sensitive loops, or bootstrapping helpers when the higher-level language cannot express the necessary ABI. Favor readable comments and labeled sections so Cursor tours stay approachable.
+
+## Setup & Toolchain
+- Use NASM or `yasm` with `-f elf64` (Linux), `-f macho64` (macOS), or `-f win64` (Windows). Keep the selected format noted here for future replication.
+- Assemble with the same linker flags used by the corresponding C/C++ project:
+  ```sh
+  nasm -f elf64 src/boot.asm -o build/boot.o
+  gcc build/boot.o build/main.o -o bin/bootloader
+  ```
+- Provide a `linker.cmd` or `link.ld` sample and document where to place the generated object files.
+
+## Structure & Rules
+- Always define explicit sections (`section .data`, `section .text`) and align instructions to cache lines when hinting perf.
+- Document calling conventions, preserved registers, and stack discipline in comments at the top of each `.asm` file.
+- Export macros with descriptive names and keep macro-based loops short to avoid confusing Cursor's tour flow.
+
+## Integration Notes
+1. Call assembly stubs from C/C++ via `extern` declarations; keep prototypes in `include/asm.h`.
+2. Wrap any inline assembly (`asm volatile("...")`) in helper functions so the tour can trace usage without parsing complex templates.
+3. Share reusable jump tables, macros, or data blobs through `data.inc` files referenced from multiple languages.
+
+## Validation & Replication
+- Attach simple smoke tests (`tests/asm-smoke.sh`) that run the assembly snippets through the same toolchain as the rest of the project.
+- Record the steps to duplicate this setup in `.repliaction/replication.mdc` so future instances maintain consistent assembler flags and file naming conventions.
+

@@ -1,0 +1,25 @@
+# Windows 95 / 98 — Platform Playbook (Net Client)
+
+## Intent
+- First-class **Phase 1** target for the cross-net BBS/chat hub: native Win32 (and optionally Win16) clients using **Winsock** over TCP.
+- Align all sample sessions with **protocol v0** in `.documentation/cross-net/protocol-v0.mdc`.
+
+## APIs and patterns
+- **Startup**: `WSAStartup`, `socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)`, `connect`, `send`/`recv`, `closesocket`, `WSACleanup`.
+- **Blocking vs non-blocking**: blocking `recv` in a dedicated thread keeps GUI message pumps responsive; use `select` or async `WSAAsyncSelect` if you stay single-threaded on GUI.
+- **DNS**: `gethostbyname` is era-appropriate; document failures when TCP/IP not bound to the adapter.
+- **Console apps**: no message pump required; flush stdout if piping logs.
+
+## Build artifacts
+- Ship **`WS2_32`** or **`wsock32`** dependency in README when you add a real project tree; static link CRT where appropriate for floppy-era deploys.
+- Document **VC++/Borland** project names under `.documentation/projects.md` when those trees exist.
+
+## Compatibility notes
+- **Windows 95**: Winsock 1.1 baseline; test early OSR builds without optional updates.
+- **Windows 98 / SE**: broader driver support; still default to Winsock 1.1 unless you require WSA 2-only features.
+- **Security**: v0 is **cleartext**; document VPN/tunnel for remote play.
+
+## See also
+- `.documentation/cross-net/index.mdc` — roadmap and hub vision.
+- `.documentation/cross-net/win9x-client-checklist.mdc` — practical checklist.
+- `.documentation/platforms/index.mdc` — master platform list.

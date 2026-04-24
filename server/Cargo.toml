@@ -1,0 +1,8 @@
+[package]
+name = "mixnetd"
+version = "0.1.0"
+edition = "2021"
+description = "68mixCross protocol v0 hub (plain TCP, Win9x-friendly clients)"
+license = "MIT OR Apache-2.0"
+
+[dependencies]

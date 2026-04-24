@@ -1,0 +1,13 @@
+# Amiga 500 / 2000 Playbook
+
+## Intent
+- Port the Genesis `OzWorldGenesis` demo states to the Amiga hardware without breaking the cycle budgets. Use `vasm`/`gcc68k` for builds, preserve the sprite loop, and wrap the copper/text/vectors into a Paula/Denise-friendly pipeline.
+
+## Ruleset
+1. **Toolchain** – Assemble with `vasm` (68000 mode) and link with `gcc68k`. Organize the build to produce `OzWorldGenesis.o` plus `kickstart`-style startup code; log the commands in `docs/changelog.md`.
+2. **Copper & Blitter** – Rebuild the vector states through copper lists rather than direct `VDP` calls. Follow the Amiga memory map notes in [ChibiAkumas 68000: Amiga](https://www.chibiakumas.com/68000/amiga.php) and maintain the general 68k expectations from [AssemblyTutorial 68k](https://www.assemblytutorial.com/68000/).
+3. **Sprites & DMA** – Paula DMA windows must wrap the sprite batch updates; keep the donut sprite data in Chip RAM and trigger darkline transfers only during blanking intervals.
+4. **Audio & logging** – Reuse the XGM-based state machine for music (mapped to Paula/DMAC channels). Maintain the `KLog` statements at state transitions so the Amiga console logs mirror the Genesis run.
+
+## Notes
+- Track the copper list definitions and memory batching in `.cursor/.documentation/platforms/x68000.mdc` when aligning with the higher-spec pipeline so the multi-platform behavior stays consistent.

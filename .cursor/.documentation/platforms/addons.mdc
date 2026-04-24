@@ -1,0 +1,12 @@
+# Sega CD / 32X Add-On Scaffolding
+
+## Intent
+- Prepare the co-processor paths without yet touching them in code. The Sega CD adds a Yamaha YM2612/Z80 player, and the 32X introduces SH2 vector DSPs. This doc captures the stepping stones so the future add-ons have a high-performance pipeline that still complements the Genesis/Amiga/X68000 core.
+
+## Ruleset
+1. **Z80 audio handoff (Sega CD)** – The Z80 acts as the audio slave. Route palette/copper control messages from the main 68k to the Z80; keep message passing simple (e.g., write to shared RAM then trigger `INT 1`), refer to [AssemblyTutorial Z80](https://www.assemblytutorial.com/z80/) for timing, and honor the Sega CD bus owner rules described in [ChibiAkumas Z80/MSX](https://www.chibiakumas.com/z80/msx.php).
+2. **SH2 vector acceleration (32X)** – Use the dual SH2 cores to precompute vector animation sequences. Keep the main 68k state machine as the architect, but send palette updates to the SH2 via mailbox/dma and synchronize through the 32X’s command handshake.
+3. **Palette/copper consistency** – When the add-ons are live, treat palette writes as atomic sequences that both the main 68k and the co-processors observe. Document the handshake and the future build flag (e.g., `make 32x`) here so the instructions survive across branches.
+
+## Notes
+- Keep this doc as the blueprint for the future hardware. Once the add-on branches take shape, add concrete command lines and memory maps referencing this scaffolding.

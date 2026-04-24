@@ -1,0 +1,18 @@
+# 68k Instruction Notes
+
+## Purpose
+Summarize the most used Motorola 68000 instructions, including their addressing modes and recommended usage for Amiga/Genesis builds. Use this doc as a quick reference for Cursor tours and new contributors.
+
+## Instruction Categories
+- **Data movement:** `MOVE`, `MOVEA`, `MOVE.L`, `MOVEQ`; document preferred source/destination ranking (e.g., `MOVE.L D0,(A0)` for DMA tables).
+- **Control flow:** `BRA`, `BSR`, `JMP`, `JSR`, `RTS`; mention delay slots and preferred use of `BSR` for reusable routines.
+- **Bit manipulation:** `AND`, `OR`, `EOR`, `BTST`, `BSET`, `BCLR`, `BCHG`; highlight how to target hardware registers (e.g., `BSET #0,$00DF00E0`).
+- **Arithmetic:** `ADD`, `SUB`, `MULS`, `DIVS`, `CLR`; note timing differences (e.g., `DIVS` takes more cycles than `MULS`) and when to avoid them in tight loops.
+- **Timing:** `NOP`, `WAIT`, `MOVEX`; use for precise copper wait loops. Document typical Copper usage patterns.
+- **VDP register access:** Map the register writes to `BPL1PTH`, `COP1L`, or Genesis VDP ports, and describe why certain writes must be word/long aligned.
+
+## Best Practices
+- Align instruction blocks for Copper lists and interrupts; mention `even` directive to keep instructions on even addresses.
+- Keep macros for `save_regs`/`restore_regs` near the top of each file to enforce register discipline.
+- Reference chip-specific docs (`chipsets.mdc`, `vdp.mdc`, `memory-map.mdc`) whenever invoking hardware registers so Cursor can describe how the instructions interact with the chips.
+- When referencing `instructions.mdc` from new modules, link to the relevant section (e.g., `Control flow`) so Cursor can describe the pattern in the tour.

@@ -1,0 +1,13 @@
+# Build Automation & Flags
+
+## Intent
+- Make cross-platform builds reproducible and document the flags the `OzWorldGenesis` demo expects for each target.
+
+## Rulebook
+1. **Genesis (SGDK)** – `make genesis` uses SGDK’s `sh` wrappers. Pass `PLATFORM=GENESIS` and `BUILD=release`; keep `BUILD_ROOT=out/genesis` to trap artifacts.
+2. **Amiga 500/2000** – `make amiga` invokes `vasm` in 68000 mode, links via `gcc68k`, and drops `OzWorldGenesis.bin` into `out/amiga`. Capture the exact command call sequence in this doc to help future porters reuse the cycle-sensitive workflow.
+3. **Sharp X68000** – `make x68000` reuses the `vasm/gcc68k` chain but points at the X68000 linker and libraries, dropping output into `out/x68000`. Document which script handles the VRAM layout adjustments so the demo states stay consistent.
+4. **Placeholders for Sega CD / 32X** – `make sega_cd` and `make 32x` are currently stubs; when implemented, they will wrap the Z80/SH2 toolchains and integrate the palette/copper handoff rules in `addons.mdc`.
+
+## Notes
+- After each build run, append the outcome to `docs/changelog.md` (or create `platforms/notes.mdc`) with the used command, timestamp, and any palette or copper anomalies.

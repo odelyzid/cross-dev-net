@@ -1,0 +1,11 @@
+# Use MSYS2 MinGW64 as the linker for the GNU target (avoids MSVC link.exe on Windows).
+# You must have mingw64\bin on PATH when linking (so gcc can find ld, as, collect2), or use:
+#   .\build-mingw.ps1
+# If you use UCRT64 or CLANG64 instead, point `linker` at that env's `gcc` and prepend its bin to PATH the same way.
+# Override MSYS2 location: $env:MSYS2_ROOT = "D:\__SDKs Modding\msys64"
+
+[build]
+target = "x86_64-pc-windows-gnu"
+
+[target.x86_64-pc-windows-gnu]
+linker = "D:/__SDKs Modding/msys64/mingw64/bin/x86_64-w64-mingw32-gcc.exe"

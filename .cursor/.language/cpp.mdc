@@ -1,0 +1,28 @@
+# C++ Language Rules
+
+## Intent
+Use C++ when you need stronger abstractions than C provides but still want deterministic performance and RAII-based resource management. Keep headers declarative and keep implementation in `.cpp` files.
+
+## Tooling & Standard
+- Default to `g++ -std=gnu++23` (or `clang++ -std=c++2b` when enabled). Propagate warnings via `-Wall -Wextra -Wconversion`.
+- Prefer `cmake` (with toolchain files inside `cmake/`) or `ninja`/`meson` for reproducible builds; document the chosen generator in `.documentation/menu.mdc`.
+
+## Code Organization
+- Place interface declarations in `include/` and implementation in `src/`. Use `namespaces` to prevent symbol clashes.
+- Keep each module focused on a single responsibility, with tests in `tests/<module>_test.cpp`.
+- Limit header dependencies by forward declaring when possible and including only what you use.
+
+## Safety & Style Rules
+- Prefer `std::span`, `std::optional`, and other expressive types from `<span>`/`<optional>` to avoid raw pointer misuse.
+- Encapsulate ownership with `std::unique_ptr`/`std::shared_ptr` and pass by reference-to-const when no mutation is required.
+- Document templates so Cursor can describe their intent: include short comment blocks with invariants and examples.
+
+## Build & CI Checklist
+1. `cmake -Bbuild -H. -DCMAKE_BUILD_TYPE=Release && cmake --build build`.
+2. Run `ctest --output-on-failure` or related harness from `build/`.
+3. Capture static analysis (`clang-tidy`, `cppcheck`) output in `reports/` and mention its location in `.documentation/projects.md`.
+
+## Cursor/Tour Notes
+- Link to this rule file from `.documentation/menu.mdc` so the tour can jump directly to `C++` guidance.
+- Use `.repliaction/replication.mdc` for replicating the build presets and test scaffolding when spinning up new C++ projects.
+

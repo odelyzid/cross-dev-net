@@ -1,0 +1,19 @@
+# 68k Assembly Guide
+
+## Intent
+Provide the conventions for writing readable Motorola 68000 assembly that feeds into the Amiga/Genesis subtrees (`games/m68k/` and `games/genesis/`). Keep directives grouped, macros brief, and maintain consistent indentation.
+
+## Key Tips
+- Use `org`, `section`, and `align` directives to pin data to the correct banks (Chip RAM vs. Fast RAM). Mention the intended memory region in comments.
+- Prefer long labels (`main_loop`, `vblank_wait`) and group register saves/restores near the joystick/palette handling logic.
+- Document calling conventions at the top of each file: which registers you preserve (`d0-d2`, `a0-a3`), where stack frames live, and how parameters arrive.
+
+## Toolchain Sample
+```sh
+nasm -f aout -o build/init.o src/m68k/init.s
+gcc build/main.o build/init.o -o bin/game -m68000
+```
+
+## Reuse & Replication
+- Store reusable copper lists, blitter command blocks, and interrupt vectors inside `data/` and reference them via `.inc` files documented here.
+- Note any platform-specific assembler macros in a `macros/` subdir so the tour can reference them from `.documentation/68k/index.mdc`.

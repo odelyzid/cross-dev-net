@@ -1,0 +1,60 @@
+# SGDK Header Rulebook
+ 
+## Purpose
+- Capture the “safe edit” checklist for each public header that comes with the SGDK SDK so Cursor’s guidance can keep terms like `VMAP`, `VDP`, `JOY`, `SPR`, `XGM`, and `res` aligned with the project’s structure.
+- Treat this directory as the go-to reference before tweaking a header; it explains what systems depend on each file and what contracts must stay intact.
+
+## How to Use
+- Read the relevant section before you edit any `#include <genesis.h>`-style headers; the notes call out the macros, structs, and initialization functions that downstream sources (`src/` modules, `res_*.h`, `boot/`) rely on.
+- Log version-specific changes in `.cursor/.cursor/.documentation/menu.mdc`/`.repliaction/replication.mdc` so the tour can mention updated guard macros or new modules.
+- If you introduce a helper that straddles two headers (e.g., a new `VDP_` utility used by `joy.h` and `vdp.h`), add a one-sentence rule under both sections so future editors know the dependencies.
+
+## Header Rules
+
+### `genesis.h`
+- Serves as the umbrella header that pulls in all SGDK subsystems; keep it lean and avoid circular includes by deferring platform-specific helpers (`vdp.h`, `sprite.h`, `joy.h`) into their own sections.
+- Guard every new macro or inline helper with `#ifndef SGDK_<NAME>` so mods can be toggled via build flags.
+- Do not hardcode video/memory addresses here—those belong in `vdp.h` or `memory-map` docs and must surface through constants (e.g., `VDP_DMA_QUEUE`).
+- When updating initialization routines (`SYS_init`, `VDP_init` wrappers), verify that `src/boot/rom_head.c` still satisfies the expected reset state and that `main.c` logs the same sequence of `KLog` statements for traceability.
+
+### `vdp.h`
+- Houses VRAM/VDP register helpers and DMA helpers; keep the register mapping tables alphabetical and grouped (e.g., `VDP_set-register` family together).
+- Add comments that cite the corresponding address from `.cursor/.cursor/.documentation/68k/memory-map.mdc` whenever you adjust timing macros—this keeps the tour’s 68k references accurate.
+- Enforce `INLINE` wrappers for one-liner register writes so inlining is consistent across `bg`, `sprite`, and `plane` helpers.
+- When adding new constants (e.g., `VDP_RH_MAX`), update `src/main.c` or the resource loader to demonstrate the value in action and call out the change in `.cursor/.cursor/.documentation/menu.mdc`.
+
+### `joy.h`
+- Focuses on input events; keep the `JOY_setEventHandler` callback signature stable and document any new bitmasks next to the `BUTTON_*` definitions.
+- Avoid embedding state machines inside this header—keep logic inside `src/` modules and expose only descriptive helpers (e.g., `JOY_isPressed`, `JOY_waitRelease`).
+- Reference `src/main.c` when you modify callback behavior so the log statements show `KLog("Button ...")` at the same cadence and testers know what to expect.
+
+### `sprite.h`
+- Defines `Sprite`, `TileSet`, and related helpers; keep struct field order stable because serialization routines in `SPR_update`, `SPR_addSprite`, and `res` generation tools rely on offset ordering.
+- If you add new sprite flags, document their bit meaning and update the `res/sprite` pipeline to regenerate `res_gfx.h` so assets stay in sync.
+- Reference `.cursor/.cursor/.documentation/68k/vdp.mdc` when linking sprite depth or palette advice to ensure the helper still respects `PAL` indices.
+
+### `sound.h` / `xgm.h`
+- `sound.h` lists PSG/XGM helpers; `xgm.h` manages playback. Keep `XGM_START`, `XGM_STOP`, and playlist identifiers sorted alphabetically so metadata linking tools can format them predictably.
+- Do not inline CPU-affecting delays here; emit them through `SYS_doVBlankProcess` or dedicated `SRC` helpers so the `XGM_startPlay` expectations in `src/main.c` remain constant.
+- When you adjust volume macros or global state, note the change in `.cursor/.cursor/.documentation/menu.mdc` and verify the `res/music/actraiser.vgm` loader still uses the updated macros.
+
+### `fix16.h`
+- Fixed-point math utilities underpin physics and animation; keep helper macros (`FIX16`, `F16_toInt`, etc.) documented adjacent to the definitions so Cursor can explain their rounding behavior.
+- Extensions (e.g., `F16_sin`, `F16_cos`) must stay constexpr-friendly. When adding new trig helpers, mention performance assumptions in this doc and tag the entries so reviewers know to run `SYS_doVBlankProcess` to watch for timing regressions.
+
+### `timer.h`
+- Contains timekeeping wrappers; ensure `TIMER_*` macros only hit `SYS_getTicks` and do not reach into `VDP` registers directly.
+- Document how each timer mode interacts with `SPR_update`/`VDP_showCPULoad` so game loops in `src/main.c` maintain the expected 60-Hz rhythm.
+
+### `res.h`
+- Resource headers (e.g., `res_gfx.h`, `res_snd.h`) are auto-generated; do not edit them manually unless the generator script changes. Instead, log generator arguments in `.documentation/menu.mdc` whenever you change palettes, tile sizes, or sample rates.
+- If you add helper macros around `RES_TILE_` or `RES_MASK_`, keep them within conditional regions guarded by `#ifdef RESOURCES_REGEN` so the generator can skip them.
+
+### `z80.h`
+- Only touch this header when you need to route code through the Z80 co-processor; keep register macros (`Z80_RESET`, `Z80_RUN`) in the same section to avoid scattering hardware toggles.
+- Note the dependency on `src/boot/sega.s` and update the `KLog` call there if you alter reset sequencing so telemetry remains predictable.
+
+## Navigation Tips
+- Add a new bullet to `.documentation/menu.mdc` referencing this file so the Cursor tour surfaces the SGDK header rules next to the 68k guidance.
+- When referencing SGDK headers from `src/`, include short log examples (like `KLog("JOY pressed")`) so readers see concrete usage and the rules stay actionable.
+*** End Patch**

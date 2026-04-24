@@ -1,0 +1,15 @@
+# Genesis / Mega Drive Playbook
+
+## Intent
+- Preserve the existing title/start animation while building the ozly `DemoState` stack for `OzWorldGenesis`. SGDK is the canonical toolchain; keep the donut/starfield loop and embed the new vector/copper/checkerboard stages in `renderDemoState`.
+- Treat this file as a checklist for palette care, VDP timing, sprite limits, and audio handshake so the MD/Genesis path remains primed for later Sega CD/32X add-ons.
+
+## Ruleset
+1. **Build toolchain** – From repo root, `build.bat genesis` (or `build.ps1 -Target Genesis`) runs SGDK’s `makefile.gen` with working directory `clients/genesis/`. The entry point is `clients/genesis/src/main.c`; avoid duplicating state machines across files.
+2. **Palette handling** – Align palette updates with `PAL_setPalette()` and keep the eight-phase `phasingColors` array inside CRAM windows to avoid flicker. Keep register writes synchronous with DMA, following the cycle notes in [ChibiAkumas Genesis/MD](https://www.chibiakumas.com/68000/genesis.php).
+3. **VDP resources** – Reserve BG_A for the text/vectors, BG_B for copper/test, WINDOW for overlays. Use `VDP_setHorizontalScrollLine()` for parallax; consult the Genesis sections of [AssemblyTutorial 68k](https://www.assemblytutorial.com/68000/) to respect the bus timing when toggling DMA.
+4. **Sprites** – Stick to the existing donut sprite set. Use `SPR_update()`/`SPR_setVRAMTileIndex` to keep animation smooth; when adding more vectors, reuse tile indices to avoid VRAM thrash.
+5. **Audio** – Launch `XGM_startPlay()` as now, keep log statements for every state transition so the debugger logs match expected flows.
+
+## Notes
+- Document any palette/copper changes in `.cursor/.documentation/platforms/build.mdc` so the build automation instructions stay aligned with the Genesis reset timing.

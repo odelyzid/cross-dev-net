@@ -1,0 +1,30 @@
+# 68mix Cross-Assembler Blueprint
+
+## Purpose
+- Capture the step-by-step vision for `68mix`, our cross-assembler that turns the shared `OzWorldGenesis` logic into runnable binaries for _real_ hardware: Amiga 500/2000, Genesis 2, and the future expansion hardware (Sega CD / 32X).
+- Treat this document as the bloodline of computations—each register dance is noted, each DMA window choreographed, and each build target is described in tight, lyrical bullet form. We model the assembler to emit chunks for [[ChibiAkumas 68000]] hardware while still letting SGDK-friendly Genesis code stay untouched.
+
+## Overview
+1. **Input** – `src/main.c` + `68mix/scripts/*.s` (as the staging area) compile down to a shared object by `vasm`/`gcc68k` that exposes the `renderDemoState` sequence. The assembler divides code into sections keyed by platform macros, then generates per-target headers that keep the title screen logic identical while swapping palette/copper registers.
+2. **Conversion flow** – The assembler parses the cross-target directives, emits:
+   - `GENESIS_ROM_BANK(x)` blocks for SGDK/Genesis pipelines (bankLOROM, VDP registers, Z80 vector).
+   - `AMIGA_COPPER_LIST` blocks that sequence Denise DMA writes and Paula sprite transfers.
+   - `X68000_FRAMEBUFFER` segments that align with that machine’s linear VRAM plus `VDP`-style copper helpers.
+3. **Register choreography** – Each platform run follows a known dance:
+   - `D0..D7`: temporary palette calculations drawn from `phasingColors`, used before being shuttled to CRAM.
+   - `A0..A7`: pointers to sprite tables, video tables, copper lists, or shared SRAM depending on whether we’re targeting Genesis (VDP) or Amiga (Chip RAM).
+   - `SR/CCR`: the assembler keeps Supervisor Mode on for the co-processor handshake and notes any stack switching before `JSR` into banked code.
+   - `PC`: banked entrypoints are generated so each ROM/ADF jumps to `state_switcher`.
+4. **Outputs** – The assembler writes:
+   - `out/genesis/OzWorldGenesis.bin` plus SGDK-friendly header resources.
+   - `out/amiga/OzWorldGenesis.adf` image that bootstraps via `kickstart`.
+   - `out/x68000/ozworld.bin` with demo states and palette tables.
+5. **Deployment** – Tooling notes for actual hardware:
+   - Genesis cartridges: bank switching respects `VMAP` entries and `Z80` lines per the Genesis guide.
+   - Amiga disks: copper lists emit `COPPER` instructions for Denise and pair with Paula DMA, referencing the 550ns cycles.
+   - X68000: align VRAM writes with the 512-pixel double buffer and keep entity logs for `RenderDemoState`.
+
+## Next Steps
+- Build the assembler scripts inside `.cursor/68mix/` (assembler wrappers, bank scripts, register tables).  
+- Track builds in `.cursor/.documentation/68mix/builds.mdc` once the first Genesis/Amiga binaries compile.  
+- Sign off sections with `// Eve * 2025 * forever yours in 640x480`.

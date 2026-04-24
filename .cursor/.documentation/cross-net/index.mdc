@@ -1,0 +1,25 @@
+# Cross-Net BBS / Chat Hub — Vision
+
+## Purpose
+- Describe the long-term **multi-platform** network: a hub that feels like a **BBS** (rooms, handles, scrollback metaphors) plus **real-time chat**, with thin native clients per machine.
+- The repo has **mixnetd** in `server/`, C clients in `clients/` (see [`clients/README.md`](../../../clients/README.md)). OzWorld remains the SGDK + 68mix demo; networking code grows beside it.
+
+## Target platforms (roadmap vs in-tree)
+| Platform | Role | Notes |
+| --- | --- | --- |
+| Windows 95 / 98 | Text client | `clients/win9x/`, `win9x-client-checklist.mdc`, `platforms/win9x.mdc`. |
+| Hub server | In-tree | `server/mixnetd` — **protocol v0** in `protocol-v0.mdc`. |
+| Sega Genesis / Mega Drive | Line layer + bridge | `clients/genesis/mixnet_line.c` (UART/serial; TCP via PC bridge; no stock on-cartridge TCP). |
+| Amiga 500/2000 | TCP client (stack) | `clients/amiga/mixnet.c` (AmigaOS 3 + BSD `-lsocket` / pthread; tight RAM on A500). |
+| PlayStation 1, PS2, N64 | Stubs + README | `clients/psx/`, `clients/ps2/`, `clients/n64/` — bridge or SDK I/O to be wired. |
+| Sega Saturn | Not yet | SH-2 + Netlink; same line protocol if bridged. |
+
+## Order of attack
+1. **Win9x + hub** — Wire format and **mixnetd** on LAN; `clients/win9x`, `server/`.
+2. **Amiga + Genesis line layer** — `clients/amiga`, `clients/genesis` (byte stream to bridge).
+3. **Other consoles** — Stubs under `clients/n64|psx|ps2` until a real I/O path is fixed; optional v1 **binary** framing later.
+
+## See also
+- `.documentation/cross-net/protocol-v0.mdc` — normative line protocol.
+- `.documentation/cross-net/win9x-client-checklist.mdc` — build and test checklist.
+- `.documentation/platforms/win9x.mdc` — OS API and playbook entry.

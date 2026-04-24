@@ -1,0 +1,32 @@
+# C Language Rules
+
+## Intent
+Use C when you want the most transparent, portable control over memory layout, data structures, and cross-platform ABI contracts. Keep modules small, rely on well-defined headers, and document every pointer ownership contract.
+
+## Setup & Toolchain
+- Target at least `gcc -std=gnu11` or `cc -std=c17`; set `CFLAGS`/`CPPFLAGS` centrally (prefer `Makefile` or `ninja`).
+- Keep compiler invocation consistent:
+  ```sh
+  gcc -std=gnu11 -Wall -Wextra -Werror -O2 -Iinclude -o bin/app src/main.c src/io.c
+  ```
+- Lock third-party libs via vendored headers/libdirs and document them under `.documentation/projects.md`.
+
+## Directory Rhythm
+- Sources live under `src/`, headers in `include/`, and binaries in `bin/`.
+- For helpers (memory, error-handling) add dedicated modules and expose their APIs through headers with clear guards.
+- Tests belong in `tests/` with a minimal harness that compiles against the same `CFLAGS`.
+
+## Programming Rules
+- Prefer explicit initialization (`memset`, compound literals) and guard every pointer (`if (ptr != NULL)`).
+- Wrap allocation/free decisions via helper functions so ownership is easy to trace.
+- Always pair `assert()` with descriptive logging and, when possible, propagate errors instead of exiting immediately.
+
+## Build & Validation
+1. Run `make clean && make` from the root; simple makefiles should set `CC`, `CFLAGS`, and `LDFLAGS`.
+2. Run `tests/run.sh` or `ctest` for unit coverage; use `valgrind` or `asan` to monitor leaks.
+3. Document expected artifacts in `.documentation/menu.mdc` so that Cursor knows which outputs belong to this project.
+
+## Cursor Tips
+- Cite this file when adding new C modules so the tour guide stays current; refer to `.documentation/menu.mdc` for navigation shortcuts.
+- Use `.repliaction/replication.mdc` to note how to copy templates (main stub, header guard patterns, test harnesses) into new projects.
+

@@ -1,0 +1,38 @@
+# Replicator Cursor Tour Menu
+
+## Orientation
+- **Language rules:** Explore `.language/` for self-contained guidance on C (`c.mdc`), Assembly (`assembly.mdc`), C++ (`cpp.mdc`), Python (`python.mdc`), and Rust (`rust.mdc`). Each document lists the compiler/interpreter commands, layout conventions, and testing cadence so you can scaffold a new module quickly.
+- **Documentation catalog:** Use this file plus `.documentation/projects.md` to understand the types of docs we keep (reference, tutorial, template) and the lightweight rules that make them intuitive to browse.
+- **Replication:** Refer to `.repliaction/replication.mdc` whenever you clone or copy a workspace; it records the standard steps for reproducing build/test setups across languages.
+- **Game dev subtrees:** Follow `.documentation/games-subtrees.mdc` when you’re working on Motorola 68000, Genesis/Amiga, or R3000 game branches so the tour can explain the per-platform layout.
+- **SGDK headers:** Peek at `.documentation/sgdk-headers/index.mdc` for the contracts when you edit `genesis.h`, `vdp.h`, `joy.h`, `xgm.h`, and other SGDK surface files.
+- **OzWorldGenesis platforms:** Reference `.documentation/platforms/index.mdc` to follow the retro-style rules for Genesis, Amiga, X68000, future CD/32X builds, and **Windows 95/98** cross-net clients.
+- **Cross-net BBS / chat hub:** Read `.documentation/cross-net/index.mdc` for the multi-platform vision; `.documentation/cross-net/protocol-v0.mdc` for the normative TCP line protocol; `.documentation/cross-net/win9x-client-checklist.mdc` for Phase 1 Win9x bring-up.
+- **Win9x net client:** Follow `.documentation/platforms/win9x.mdc` for Winsock patterns and build notes.
+- **68k deep docs:** Dive into `.documentation/68k/index.mdc` for the structured guide on VDP registers, chipsets, memory maps, and instruction references kept inside logical subdirectories.
+- **68mix cross-assembler:** Review `.documentation/68mix/index.mdc` before you touch build pipelines so every register move and output target is scripted for Genesis, Amiga, and X68000 hardware.
+
+## Tour Map
+-| Language | Path | Highlights |
+-| --- | --- | --- |
+-| C | `.language/c.mdc` | `gcc -std=gnu11`, header conventions, `Makefile` rhythm |
+-| Assembly | `.language/assembly.mdc` | `nasm` flags, ABI notes, linking templates |
+-| C++ | `.language/cpp.mdc` | `cmake`/`ninja`, RAII, lint integration |
+-| Python | `.language/python.mdc` | venv/Poetry, `black`/`ruff`, docstring expectations |
+-| Rust | `.language/rust.mdc` | `cargo` workspace, `clippy`, unsafe justification guidelines |
+-| Game subtrees | `.documentation/games-subtrees.mdc` | Motorola 68000, Genesis/Amiga, PSX R3000 folders and emulator helpers |
+-| Cross-net hub | `.documentation/cross-net/index.mdc` | BBS/chat vision, protocol v0, Win9x checklist |
+-| Win9x client | `.documentation/platforms/win9x.mdc` | Winsock TCP, VC++/Borland, protocol alignment |
+-| 68k deep docs | `.documentation/68k/index.mdc` | VDP/chipset/memory/instruction guides kept in dedicated subfolders |
+
+## Guided Steps
+1. **Start with this menu.** Quickly scan the orientation notes above to know which folder to open next.
+2. **Open the relevant language rule.** Read the quickstart snippet and copy the command template into your working branch before editing.
+3. **Document decisions.** After adjusting a language rule, note the change path in `.documentation/projects.md` so the tour can link to the new doc or project.
+4. **Review replication instructions.** Before you fork a workspace or add a new project, update `.repliaction/replication.mdc` with the repeatable commands and artifacts you expect.
+
+## Maintenance Notes
+- When you add a new doc type or project program, describe it in `.documentation/projects.md` alongside a one-sentence rule for its usage (see the `Small Rules` section there).
+- If a language rule changes (e.g., new compiler flags), add a bullet to this menu referencing the updated file so the tour remains accurate.
+- Cross-net or Win9x doc changes should be reflected in `.documentation/projects.md` when new source trees (e.g. `server/`, `clients/win9x/`) appear.
+

@@ -1,0 +1,31 @@
+# OzWorldGenesis Platform Playbook
+
+## Purpose
+- Keep the Genesis title/start screen intact while documenting every platform branch of the ongoing `OzWorldGenesis` demo. This playbook is your injected vibes of 1s and 0s: it ties the Genesis/Amiga/X68000 code paths to concrete attention-to-detail checklists plus the future Sega CD/32X add-ons.
+- Each section cites the retro tutorials we love—ChibiAkumas plus AssemblyTutorial—so the rules follow the tone and tooling expected of a 90s-grade, cross-68k project.
+
+## Outline
+0. **Windows 95 / 98 (cross-net client)** – Winsock TCP clients for the BBS/chat hub; protocol v0 in `.documentation/cross-net/protocol-v0.mdc`. See `.documentation/platforms/win9x.mdc` and `.documentation/cross-net/win9x-client-checklist.mdc`.
+1. **Genesis / Mega Drive (SGDK head)** – `main.c` is the default entrypoint. Preserve the donut/starfield animation and demo-state text/vector/copper/checkerboard layering; quality is achieved by using VDP helpers plus SGDK’s palette and DMA utilities. See the Genesis-specific 68k guidance for cycle budgets and DMA workflows: [ChibiAkumas Genesis/MD](https://www.chibiakumas.com/68000/genesis.php).
+2. **68k Amiga 500/2000** – The Amiga branch uses a `vasm`/`gcc68k` toolchain. Reframe the Genesis demo states into Amiga copper lists, respect Paula DMA windows, and move sprites into `sprite_engine`-style buffering. Follow the general 68000 rules from [AssemblyTutorial 68k](https://www.assemblytutorial.com/68000/) plus the Amiga guide at [ChibiAkumas 68000](https://www.chibiakumas.com/68000/amiga.php).
+3. **Sharp X68000** – Treat the X68000 as a higher-spec 68k workstation: map the demo states to its native VRAM framebuffer (double resolution, 512-pixel width), use `gcc68k` + `vasm` for builds, and keep palette/copper updates within the limits in [ChibiAkumas X68000](https://www.chibiakumas.com/68000/x68000.php).
+4. **Sega CD / 32X add-on scaffolding** – The Z80 + SH2 co-processors demand custodial rules. Document how to hand off palette and copper control from the main 68k to the Z80 (Sega CD audio) and SH2 (32X vectors) while referencing the Z80 workflow from [AssemblyTutorial Z80](https://www.assemblytutorial.com/z80/) and [ChibiAkumas Z80/MSX](https://www.chibiakumas.com/z80/msx.php). Outline the synchronization steps, especially the master/slave selection and bus control.
+5. **Build automation & flags** – Each platform has a dedicated target:
+   - `make genesis` → SGDK cross-compiler, `PI=0`, `PLATFORM=GENESIS`.
+   - `make amiga` → `vasm` + `gcc68k` linking with Amiga libs, `TARGET=amiga/OzWorldGenesis`.
+   - `make x68000` → similar path pointing at the X68000 distro and custom linker scripts.
+   - `make sega_cd` / `make 32x` (placeholders) → future macros for Z80/SH2 payload swapping.
+Document expected output directories and logs under `OzWorldGenesis/docs/changelog.md` (or add `.cursor/.documentation/platforms/notes.mdc`) so the manual remains the single source of truth.
+6. **Documentation injection** – After every change, log the toolchain versions and palette/copper-demo decisions here. This file becomes the virtual memory map for `OzWorldGenesis` and keeps the Cursor tour aware of each cross-target tweak.
+
+## Next Actions
+- Confirm the installed tool versions for SGDK, `vasm`, `gcc68k`, and any Z80/SH2 toolchains and record them.
+- Expand the per-platform notes (pages below) with command sequences, expected memory layouts, and debug/verification steps before coding the cross-compilation logic.
+
+## See Also
+- `.documentation/platforms/win9x.mdc` – Windows 95/98 Winsock client playbook for cross-net hub.
+- `.documentation/platforms/genesis.mdc` – Genesis/MD build rules and VDP timing checklist.
+- `.documentation/platforms/amiga.mdc` – Paula/Denaise copper and sprite guidance for Amiga 500/2000.
+- `.documentation/platforms/x68000.mdc` – X68000 framebuffer, palette, and command notes.
+- `.documentation/platforms/addons.mdc` – Sega CD Z80 and 32X SH2 scaffolding.
+- `.documentation/platforms/build.mdc` – Build automation, make targets, and changelog guidance.

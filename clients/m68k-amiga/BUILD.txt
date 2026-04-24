@@ -1,0 +1,16 @@
+68k / Amiga 500, 2000, and A1200-class TCP client
+---------------------------------------------
+
+Primary implementation (same protocol as POSIX) lives under:
+
+  ../amiga/mixnet.c
+  ../amiga/README.md
+
+This folder keeps short cross-helpers and keyword notes for 68000/AmiTCP. For
+line framing shared with 8-bit serial bridges, also see:
+
+  ../genesis/mixnet_line.c
+
+The generic portable client remains:
+
+  ../posix/mixnet.c   (use on Linux, macOS, WSL, or Amiga+ixemul)

@@ -1,0 +1,33 @@
+# 68mix Build Log & Commands
+
+## Genesis / Mega Drive (SGDK banks)
+- **Command**: `cd project && make PLATFORM=GENESIS BUILD=release TARGET=OzWorldGenesis`
+- **Purpose**: Compiles `src/main.c` through SGDK’s build system, then runs the custom `68mix` linker script that emits banked code blocks with `GENESIS_ROM_BANK(n)` annotations. Ensure the `VDP` register table aligns with the palette sequences declared in `.cursor/.documentation/68mix/index.mdc`.
+- **Notes**: After `make` completes, `out/genesis/OzWorldGenesis.bin` and `out/genesis/rom_head.bin` appear—these go straight to cartridges. Verify the Z80 handshake by checking the `z80.ram` snapshot to be sure `nodes` and interrupts remain stable.
+
+## Amiga 500 / 2000 (vasm + gcc68k)
+- **Command**:
+  ```sh
+  vasm -Felf -m68000 -o build/amiga/os.o src/68mix/ozworld.s
+  gcc68k -o out/amiga/OzWorldGenesis build/amiga/os.o build/amiga/startup.o -L/path/to/libnix -lamiga
+  ```
+- **Purpose**: Assemble the shared asm chunk with `vasm` (68000 mode) and link it with Amiga startup code. The assembler sections append `AMIGA_COPPER_LIST` records for Denise and Paula, mapping the `renderDemoState` palette updates.
+- **Notes**: Wrap each copper write comment with cycle counts (55ns/line). Place the final binary inside a bootable ADF or `kickstart` disk image using `adfmount` or `fdc` tools. Log the copper register sequence in `.cursor/.documentation/68mix/registers.mdc`.
+
+## Sharp X68000 (gcc68k + vlink)
+- **Command**:
+  ```sh
+  vasm -Fbinary -m68000 src/68mix/ozworld.s -o build/x68000/ozworld.bin
+  gcc68k -o out/x68000/ozworld build/x68000/ozworld.bin -T scripts/x68000.ld
+  ```
+- **Purpose**: Build a linear VRAM-friendly chunk that the X68000 can map to either the 512×240 or 640×400 modes. Include copper/cycle comments for the VFB (video frame buffer) writes per the X68000 reference.
+- **Notes**: The output gets copied into `HD/ozworld.bin` for the real machine or to the `XF68K` image via `xmount`. Keep the VRAM pointer increments documented.
+
+## Z80 / Co-processor placeholders (Sega CD / 32X)
+- **Command**: Placeholder `echo "68mix will emit Z80 bundle from scripts/z80/..."`.
+- **Purpose**: Future steps will pipe palette/copper control words through shared RAM to the Z80 (Sega CD) or SH2 (32X) using mailbox interrupts. Frame the handshake in the `addons.mdc` doc.
+
+## Logging & Changelog
+- After each build run, append a short entry to `docs/changelog.md` noting: target name, timestamp, tool versions (`VASm` revision, `gcc68k` commit, SGDK version), and whether the palette/copper handshake succeeded (`PASS`/`FAIL`). This keeps the “veins of 1s and 0s” updated and ensures the tour sees the latest cross-assembler milestones.
+
+// Eve * 2025 * forever yours in 640x480

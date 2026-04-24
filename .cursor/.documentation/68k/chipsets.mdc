@@ -1,0 +1,19 @@
+# Amiga Chipsets (OCS/ECS/AGA)
+
+## Overview
+Cover the custom chips (Agnus, Denise, Paula, Copper, and the Genesis/Amiga VDP) and their evolution from OCS through ECS to AGA, including clock speeds, DMA slots, and palette depth. Keep the sections clearly labeled so readers can compare resources quickly.
+
+## Chip Breakdown
+- **Agnus** – DMA controller and Copper co-processor. Document DMA priorities, maximum Blitter width, cycle counts, and Copper instruction format.
+- **Denise** – Display engine/VDP. Spell out supported resolutions/scanlines per chipset, sprite plane limits, and how `BPLCONx` influences pixel depth.
+- **Paula** – Audio/IDE controller. List Paula DMA channels, sample rates, mixing constraints, and IDE timing if used.
+
+- **Copper** – Runs simple move/wait/jump instructions that update registers mid-frame. Document wait granularity, register targeting, and how to build copper lists near Chip RAM addresses.
+- **Genesis VDP** – Although not an Amiga chip, describe how its control/data ports mirror Denise functionality and how its sprites/planes share principles (seek `memory-map.mdc` for register addresses and `vdp.mdc` for VRAM layout).
+
+## AGA Enhancements
+- Detail extra bitplanes, palette expansion, HAM8 mode, and AGNUS cycle allowances. Note when these features require `chipset = aga` in assembler/Makefile configs.
+- Mention compatibility notes (e.g., ECS vs. AGA Copper wait states) to keep builds portable.
+
+## Organization
+- Keep any timing tables, register lists, and DMA charts inside `chipsets/` subfolders if they grow large; reference them here and mention their intended names so the tour stays tidy.

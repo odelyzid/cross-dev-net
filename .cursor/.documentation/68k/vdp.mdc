@@ -1,0 +1,24 @@
+# VDP & Display Registers
+
+## Purpose
+Explain the Video Display Processor registers for the Amiga and Genesis so you can lay out sprites, planes, palettes, and DMA channels without guessing register offsets.
+
+## Key Registers (Amiga)
+- `BPLCON0/1/2`: Define bitplane depth, sprite enabling, and playfield priority.
+- `DIWSTRT/DIWSTOP`: Bounds of the active display window; note the typical overscan values for OCS/ECS vs. AGA.
+- `COP1L/2`, `COPJMP1/2`: Copper list pointers; document copper wait instructions, how to nest jumps, and the even-alignment requirement.
+- `BPL1PTH/BPL2PTH` (and following bitplane pointers): 32-bit pointer registers; mention the `even` alignment and how to spread bitplanes across banks.
+- `SPRITE DATA` and `SPRITE CONTROL` registers: show address ranges near `$00DFF1C0`.
+
+## Key Registers (Genesis)
+- `VDP Data/Control`: Main command registers; include the control word format (bit 15/14 for type, bits 13-0 for address).
+- `VRAM`, `CRAM`, `VSRAM` ports: Outline access patterns and timing constraints (e.g., wait states) and note how writes must be paired with control register updates.
+- `H/V Counter`: Use for horizontal/vertical sync monitoring and generating interrupts; mention that VBlank occurs at `INT 10h`.
+- `Interrupt Control`: Show how VBlank and HBlank interrupt bits map to Genesis IRQs and how they tie into DMA transfers for sound/VDP updates.
+
+## Best Practices
+- Keep sprite/plane data aligned to 8-byte boundaries; mention `DMA = 1` vs. `DMA = 2` usage in comments.
+- Document which Denise registers are touched by copper lists vs. general CPU writes to avoid contention.
+- Include register tables that call out which chips (Denise, Paula, Genesis VDP) own each address and how customizing palettes/bitplanes influences the VDP state.
+- Document the VRAM layout per platform and keep copies of typical initialization sequences (`init-vdp.s`) in `assets/vdp/`.
+- When referencing new VDP helper scripts, add their names under `games/genesis/`/`games/m68k/` directories so the tour highlights them.

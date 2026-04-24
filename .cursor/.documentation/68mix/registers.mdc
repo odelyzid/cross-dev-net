@@ -1,0 +1,26 @@
+# 68mix Register Choreography
+
+## Data Registers (D0–D7)
+- D0..D3: temporary palette math. Each `phasingColors` value is tweaked here before being pushed to CRAM/Denise. During Genesis builds, D0 stores the palette slot index while D1 handles the final `RGB24_TO_VDPCOLOR` conversion.
+- D4..D5: used for vector geometry (sin/cos) inward/outward scaling. For Amiga/X68000 ports, we reuse D4 for `ANGLE` adjustments and D5 for amplitude deltas.
+- D6..D7: reserved for copper timing counters. These hold loop counters (scanline, DMA batches) before transferring to the actual hardware registers.
+
+## Address Registers (A0–A7)
+- A0: pointer to the active demo-state table. The assembler emits `state_table` data in each target-specific section.
+- A1: palette buffer pointer. VDP writes (Genesis) or Chip RAM buffers (Amiga/X68000) read from here.
+- A2: sprite/texture table base (donut animation). The `SPR_setVRAMTileIndex` helpers rely on this pointer.
+- A3: vector/copper list pointer (Amiga/X68000). For Genesis, the pointer is reinterpreted as a VDP scroll table address.
+- A4: shared RAM message queue for Z80 (Sega CD) or SH2 mailboxes (32X). The assembler leaves placeholders for future writes.
+- A5..A7: stack or scratch pointers depending on target (e.g., `A7` is supervisor stack, `A6` is user stack).
+
+## System Registers
+- `SR`: kept in supervisor mode to allow DMA/copper writes. The assembler sequences `MOVE.W #SR,#USP` before banked jumps, ensuring we never drop to user mode mid-transfer.
+- `CCR`: bass-level IRQ masking occurs before each `renderDemoState` call so palette writes don’t conflict with interrupts.
+- `PC`: banked entry point per platform (Genesis bank n, Amiga boot vector, X68000 reset). The assembler emits `JSR` trampolines per bank to keep the code shareable.
+
+## Hardware Register Notes
+- Genesis VDP registers (CRAM, VDP data/ctrl) are written through `VDP_setReg()` macros; the assembler collects them in per-target macros to minimize race conditions.
+- Amiga Denise copper instructions are built in `AMIGA_COPPER_LIST` macros with cycle annotations (blitter window, sprite DMA). Paula DMA is synchronized with `VBLANK`.
+- X68000 VRAM writes go through the `VFB` pointer; we keep the pointer increments inside `A3` and track them using the vector stage counter.
+
+// Eve * 2025 * forever yours in 640x480
