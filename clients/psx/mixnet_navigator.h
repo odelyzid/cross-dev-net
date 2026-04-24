@@ -11,7 +11,7 @@
 #include <stddef.h> /* size_t */
 
 #define MIXNET_NAV_TITLE  "Mixnet Navigator"
-#define MIXNET_NAV_VER    "0.2-psx"
+#define MIXNET_NAV_VER    "0.3-psx"
 #define MIXNET_PSX_SCROLL 28
 
 void mixnet_nav_init(mixnet_tx_fn link_tx, void* link_user);

@@ -28,10 +28,22 @@ cd /d E:\Emulation\SGDK_NEW\project\68mixCross\clients\psx
 build-psyq.bat
 ```
 
+**PowerShell (not cmd):** `cd` has no `/d` option, and you must be **in** `clients\psx` or use a path. From the **repo root** you can run:
+
+```powershell
+Set-Location E:\Emulation\SGDK_NEW\project\68mixCross\clients\psx
+# or:  cd E:\Emulation\SGDK_NEW\project\68mixCross\clients\psx
+.\build-psyq.bat
+```
+
+Or in one line from the repo root: `.\clients\psx\build-psyq.bat`
+
 Outputs (default):
 
 - `out\mixnet.cpe`
 - `out\mixnet.exe` — PS-X executable, if `CPE2X` succeeded
+
+**Live server + SIO:** the ROM talks to **mixnetd** on a PC through **SIO1** (115200 8N1) and the Python tool in [`../bridge/`](../bridge/). See [BRIDGE.md](BRIDGE.md) and set defaults in [`../include/mixnet_config.h`](../include/mixnet_config.h) if needed.
 
 ## 3) Test in an emulator
 
@@ -45,6 +57,33 @@ SDevTC **3.06** on Win32: **`sn.ini` / `psyq.ini` in the PSYQ `bin` folder is no
 - Ensure a valid `sn.ini` and `psyq.ini` in **`%SN_PATH%`** (usually `C:\Psyq\bin` when a junction is used), **ASCII, CRLF**, consistent paths (often **`C:\Psyq\...`**, not `E:\` — 32-bit tools can reject non–`C:` INI).
 - The link step uses **`ccpsx -Xo$80010000 … -omixnet.cpe,sym`** (not a `PSYLINK` `.lnk` file), same idea as `psx\sample\serial\SIO\TUTO2\MAKEFILE.MAK`.
 - **`CPE2X.EXE`** in many rips is **16-bit** and will not run on 64-bit Windows. **`out\mixnet.cpe`** is still a valid, testable build for emulators; run **`CPE2X`** in a 16/32-bit or Win9x VM to get **`mixnet.exe`**.
+
+## PCSX-Redux: PS-EXE, ELF, boot ISO (no CPE2X)
+
+If you have [PCSX-Redux](https://github.com/grumpycoders/pcsx-redux) on disk (e.g. `E:\Emulation\PSX\PCSX_REDUX` with `ps1-packer.exe`, `exe2elf.exe`, `exe2iso.exe`), you can go from **`out\mixnet.cpe`** to a **PS-X EXE**, **ELF**, and a **raw CD/ISO** image in one step:
+
+**cmd** (the placeholder `<repo>` in older docs was **not** meant to be typed literally; use your real clone path, e.g. `E:\Emulation\SGDK_NEW\project\68mixCross`):
+
+```bat
+set PCSX_REDUX=E:\Emulation\PSX\PCSX_REDUX
+cd /d E:\Emulation\SGDK_NEW\project\68mixCross\clients\psx
+pack-pcsx-redux.bat
+```
+
+**PowerShell:** `cd` to `clients\psx` first, or run the batch with a path:
+
+```powershell
+Set-Location E:\Emulation\SGDK_NEW\project\68mixCross\clients\psx
+$env:PCSX_REDUX = "E:\Emulation\PSX\PCSX_REDUX"
+.\pack-pcsx-redux.ps1
+# or from repo root:  .\clients\psx\pack-pcsx-redux.bat
+```
+
+Optional script args: **`-ReduxRoot`**, **`-OutDir`**, **`-SkipIso`**, **`-SkipElf`**. The `.bat` wrapper sets a default `PCSX_REDUX` to `E:\Emulation\PSX\PCSX_REDUX` unless you **`set PCSX_REDUX=...`** in cmd.
+
+- **`ps1-packer`**: CPE (or an existing `mixnet.exe` from CPE2X) → `out\mixnet_pcsx.psx.exe` — works on 64-bit Windows.
+- **`exe2elf`**: that PS-EXE → `out\mixnet_pcsx.elf` (e.g. for analysis tools).
+- **`exe2iso`**: same PS-EXE → `out\mixnet_pcsx_boot.iso` (bootable disc image; open in PCSX-Redux as a CD/ISO, same as a raw `.bin`).
 
 ## Cross-env without PSYQ
 

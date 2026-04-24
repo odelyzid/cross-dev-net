@@ -10,7 +10,8 @@ Console / embedded clients for the same **line protocol** as [`../server`](../se
 | [`amiga/`](amiga/) | **Amiga 500 / 2000** (68000) + AmigaOS 3.x TCP | Same model as POSIX; see [amiga/README.md](amiga/README.md). |
 | [`genesis/`](genesis/) | **Sega Mega Drive** — **ROM (OzWorld) + serial bridge** | SGDK + re-exported `mixnet_line` from `common/`. |
 | [`n64/`](n64/) | Nintendo 64 | `mixnet_stub.c` + `common/mixnet_line` self-test; wire `stub_tx` to your link. |
-| [`psx/`](psx/) | PlayStation 1 (R3000) | **Mixnet Navigator** (`mixnet_navigator.c` + `mixnet_stub.c`): location bar, menu, ROOMS/WHO/MSG; needs bridge; [psx/README.md](psx/README.md). |
+| [`psx/`](psx/) | PlayStation 1 (R3000) | **Mixnet Navigator** + **SIO1**; [psx/BRIDGE.md](psx/BRIDGE.md), [psx/README.md](psx/README.md). |
+| [`bridge/`](bridge/) | **PC: serial to TCP** | [mixnet_serial_bridge.py](bridge/mixnet_serial_bridge.py) — pairs COM (or serial-TCP) with **mixnetd**. `pip install -r requirements.txt`. |
 | [`ps2/`](ps2/) | PlayStation 2 (EE) | Stub + README; ps2ip / bridge TBD. |
 | [`m68k-amiga/`](m68k-amiga/) | Pointers | [BUILD.txt](m68k-amiga/BUILD.txt) — points at `amiga/`. |
 

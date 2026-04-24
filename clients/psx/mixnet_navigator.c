@@ -108,7 +108,10 @@ static void scroll_push(const char* line) {
 	}
 }
 
-static int prefix_is(const char* s, const char* pre) { return strncmp(s, pre, strlen(pre)) == 0; }
+static int prefix_is(const char* s, const char* pre) {
+	/* Cast for PSYQ headers: strncmp declared without const */
+	return strncmp((char *)s, (char *)pre, strlen(pre)) == 0;
+}
 
 /* mixnet://host:port/room */
 static int parse_mixnet_url(const char* s, char* host, size_t hcap, int* port, char* room, size_t rcap) {
@@ -119,7 +122,7 @@ static int parse_mixnet_url(const char* s, char* host, size_t hcap, int* port, c
 	str_clear(host, hcap);
 	str_clear(room, rcap);
 	*port = (int)MIXNET_DEFAULT_PORT;
-	if (strncmp(s, "mixnet://", 9) != 0) return -1;
+	if (strncmp((char *)s, "mixnet://", 9) != 0) return -1;
 	p = s + 9;
 	slash = NULL;
 	{
@@ -231,9 +234,9 @@ void mixnet_nav_init(mixnet_tx_fn link_tx, void* link_user) {
 	s_tx_user = link_user;
 	s_want_quit = 0;
 	s_log_n = 0;
-	s_host[0] = '\0';
+	str_copy_lim(s_host, MIXNET_DEFAULT_HOST, sizeof s_host);
 	s_port = (int)MIXNET_DEFAULT_PORT;
-	s_room[0] = '\0';
+	str_copy_lim(s_room, MIXNET_DEFAULT_ROOM, sizeof s_room);
 	s_nick[0] = '\0';
 	s_have_hello = 0;
 	s_in_room = 0;
@@ -242,6 +245,7 @@ void mixnet_nav_init(mixnet_tx_fn link_tx, void* link_user) {
 	s_urlbuf[0] = '\0';
 	scroll_push("=== " MIXNET_NAV_TITLE " " MIXNET_NAV_VER " ===");
 	scroll_push("Netscape-style hub. :h=help :q=exit :loc mixnet://host:port/room :g=connect");
+	scroll_push("SIO+bridge @115200. Set host in config or :loc. See clients/psx/BRIDGE.md. Pad: 1-6, Sel,Start");
 	build_url_string();
 }
 
@@ -314,8 +318,8 @@ int mixnet_nav_user_key(const char* user_line, char* out, size_t out_cap) {
 		{
 			char t[MIXNET_MAX_LINE];
 			str_copy_lim(t, MX_JOIN, sizeof t);
-			strncat(t, " ", sizeof t - strlen(t) - 1u);
-			strncat(t, r, sizeof t - strlen(t) - 1u);
+			strncat(t, (char *) " ", sizeof t - strlen(t) - 1u);
+			strncat(t, (char *)r, sizeof t - strlen(t) - 1u);
 			str_copy_lim(s_room, r, sizeof s_room);
 			send_proto(t, out, out_cap);
 		}
@@ -330,8 +334,8 @@ int mixnet_nav_user_key(const char* user_line, char* out, size_t out_cap) {
 			return 0;
 		}
 		str_copy_lim(line, MX_MSG, sizeof line);
-		strncat(line, " ", sizeof line - strlen(line) - 1u);
-		strncat(line, t, sizeof line - strlen(line) - 1u);
+		strncat(line, (char *) " ", sizeof line - strlen(line) - 1u);
+		strncat(line, (char *)t, sizeof line - strlen(line) - 1u);
 		send_proto(line, out, out_cap);
 		return 0;
 	}

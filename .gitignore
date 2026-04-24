@@ -25,6 +25,10 @@ clients/**/mixnet_test.exe
 # Accidental local output at repo root
 /out/
 
+# Python
+**/__pycache__/
+*.pyc
+
 # --- IDE / OS
 .vs/
 .idea/

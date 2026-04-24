@@ -82,9 +82,10 @@ pushd "%CWD32%" || exit /b 1
 popd
 del /q "%OUT%\mixnet.lnk" 2>nul
 
-REM Link with CCPSX (not PSYLINK + .lnk): same pattern as psx\sample\serial\SIO\TUTO2\MAKEFILE.MAK
+REM Link with CCPSX (not PSYLINK + .lnk). Object-only link does not pull sn.ini stdlib/graphics
+REM libs; add -l so Fnt/ResetGraph/etc. resolve (same as one-shot ccpsx main.c).
 pushd "%CWD32%" || exit /b 1
-"%PSYQ%\bin\CCPSX" -Xo$80010000 "%PSYQ%\psx\lib\2mbyte.obj" "%OUT%\mixnet_navigator.obj" "%OUT%\mixnet_stub.obj" -o"%OUT%\mixnet.cpe","%OUT%\mixnet.sym","%OUT%\mixnet.map"
+"%PSYQ%\bin\CCPSX" -Xo$80010000 -l libc -l libapi -l libgpu -l libgte -l libetc -l libgs -l libsn -l libpad -l libsio "%PSYQ%\psx\lib\2mbyte.obj" "%OUT%\mixnet_navigator.obj" "%OUT%\mixnet_stub.obj" -o"%OUT%\mixnet.cpe","%OUT%\mixnet.sym","%OUT%\mixnet.map"
 set ERR=%ERRORLEVEL%
 popd
 if not "%ERR%"=="0" (
