@@ -1,0 +1,8 @@
+[ccpsx]
+stdlib=libc.lib libapi.lib libsn.lib
+compiler_path=%PSYQ%\bin
+assembler_path=%PSYQ%\bin
+linker_path=%PSYQ%\bin
+library_path=%PSYQ%\lib
+c_include_path=%PSYQ%\include
+cplus_include_path=%PSYQ%\include

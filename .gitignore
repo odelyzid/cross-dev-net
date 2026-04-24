@@ -14,10 +14,16 @@ clients/genesis/src/ozworld_68mix.s
 # --- Rust
 server/target/
 
+# --- PS1 / PSYQ build output
+clients/psx/out/
+
 # --- C client builds
 clients/**/*.exe
 clients/**/mixnet
 clients/**/mixnet_test.exe
+
+# Accidental local output at repo root
+/out/
 
 # --- IDE / OS
 .vs/

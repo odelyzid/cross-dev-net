@@ -1,5 +1,7 @@
 # PlayStation 1 (PSX) — Mixnet Navigator (“Netscape” hub)
 
+This folder is the **PlayStation 1** slice of the project (see [../../README.md](../../README.md)): a **self-contained, PSYQ-friendly** C module you can **compile and run in an emulator** to prove the same **line protocol** as the PC server, before you wire a serial/pad **bridge** to a host PC.
+
 A **text-mode “browser” shell** for **mixnetd**: title bar, **Location** bar (`mixnet://host:port/room` — logical address for your PC bridge; the PS1 does not run raw TCP in this source tree), **menu** keys [1]–[6], services (**ROOMS**, **WHO**, **PART**), and a **scroll** area for `INFO` / `PRIVMSG` lines — same line protocol as [`../../server/`](../../server) (default port in [`include/mixnet_config.h`](../include/mixnet_config.h)).
 
 ## Source files
@@ -11,8 +13,20 @@ A **text-mode “browser” shell** for **mixnetd**: title bar, **Location** bar
 | [`mixnet_stub.c`](mixnet_stub.c) | `main`, byte TX buffer, [optional] `mixnet_psx_*` display stubs |
 | [`mixnet_psx.h`](mixnet_psx.h) | Hooks for your **FntPrint** / GPU text layer |
 | [`../common/mixnet_line.c`](../common/mixnet_line.c) | Line framing over the **bridge** (included from `main` T.U.) |
+| [`build-psyq.bat`](build-psyq.bat) + [`write_ccpsx_sn.ps1`](write_ccpsx_sn.ps1) | **Windows + official PSYQ (CCPSX)**: one-shot build; see [BUILD-PS1.md](BUILD-PS1.md) |
 
-**Build** (illustrative — add both `.c` to your project):
+### Official build (PSYQ on Windows)
+
+End-to-end steps (junction **`C:\Psyq`**, `SN_PATH` / `ccpsx` link line, `out\mixnet.cpe`) are in **[BUILD-PS1.md](BUILD-PS1.md)**. From `clients\psx\`:
+
+```bat
+set PSYQ=C:\Psyq
+build-psyq.bat
+```
+
+Primary artifact: **`out\mixnet.cpe`** (and **`mixnet.exe`** if `CPE2X` runs on your host—often it does not on 64-bit Windows; emulators can still use the **`.cpe`**.)
+
+**Hand-rolled build** (illustrative — add both `.c` to your project):
 
 ```text
 ccpsx -c -I. mixnet_navigator.c
@@ -40,5 +54,6 @@ On a **PC host** (sanity only): `gcc -std=c99 -c mixnet_*.c` and link — `main`
 
 ## Tooling
 
-- **PSYQ:** e.g. `E:\Emulation\psyq` — set **`PSYQ_ROOT`**, fix `PSPATHS.BAT` — [TOOLCHAINS](../../docs/TOOLCHAINS.md)
+- **PSYQ (full guide):** [BUILD-PS1.md](BUILD-PS1.md) and [TOOLCHAINS — PSYQ](../../docs/TOOLCHAINS.md) (`E:\Emulation\psyq`, `PSYQ_ROOT`, `PSPATHS.BAT`, `C:\Psyq` junction)
 - **Protocol:** [protocol v0](../../.cursor/.documentation/cross-net/protocol-v0.mdc)
+- **Server:** run [mixnetd](../../server/README.md) on the PC; the **bridge** (not in this tree) maps serial/bytes to TCP.

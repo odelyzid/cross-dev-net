@@ -1,10 +1,17 @@
 # 68mixCross
 
+**68mixCross** is a **cross-platform “dev BBS / chat” stack**: a **Rust** TCP hub (**mixnetd**) and **thin C clients** (desktop, Amiga, console) that all speak the same **line-based mixnet v0** protocol. The same design ties a **Sega Mega Drive ROM** and **console bridges** (e.g. N64, **PlayStation 1** text shell) to one server—so you can hack **rooms, nicks, and wire protocol** on the PC, then point hardware or emulators at the same hub.
+
+| Layer | What you get |
+| --- | --- |
+| **Server** | [`server/`](server/) — **mixnetd** (TCP; default **19677**). The core product for local dev and “LAN party” BBS style sessions. |
+| **Genesis (optional)** | [`clients/genesis/`](clients/genesis/) — SGDK + [`mixnet_line`](clients/genesis/mixnet_line.c) for serial/bridge; **ROM:** `clients/genesis/out/rom.bin` via root [`build.bat`](build.bat) / [`build.ps1`](build.ps1). |
+| **PS1 (PSYQ)** | [`clients/psx/`](clients/psx/) — **Mixnet Navigator**: text UI shell for the same protocol, built for **CCPSX**; see [clients/psx/README.md](clients/psx/README.md) and [clients/psx/BUILD-PS1.md](clients/psx/BUILD-PS1.md). |
+| **Other clients** | Win9x, POSIX, Amiga, more stubs in [`clients/`](clients/); shared framing in [`clients/common/`](clients/common/), constants in [`clients/include/`](clients/include/). |
+
 **At a glance**
 
-- **Sega / OzWorld (optional):** SGDK game + assets live under [`clients/genesis/`](clients/genesis/) (`src/`, `res/`, `inc/`). Root [`build.bat`](build.bat) / [`build.ps1`](build.ps1) run `make` with that folder as the project directory; **ROM output:** `clients/genesis/out/rom.bin`.
-- **mixnet (hub + clients):** [`server/`](server/) is **mixnetd** (TCP line protocol). [`clients/`](clients/) is portable C (Win9x, POSIX, Amiga, **line framing** in [`clients/common/`](clients/common/) for **Genesis, N64, PS1** bridges, plus stubs for PS2, etc.). **Constants** in [`clients/include/`](clients/include/).
-- You can work on **BBS / chat** without building the **Genesis ROM**; see [`docs/REPO_LAYERS.md`](docs/REPO_LAYERS.md). External SDK notes (PSYQ, libdragon): [`docs/TOOLCHAINS.md`](docs/TOOLCHAINS.md). Cursor: [`.cursor/`](.cursor/entry-point.mdc).
+- You can work on **BBS / chat and mixnetd** without building the **Genesis ROM**; see [`docs/REPO_LAYERS.md`](docs/REPO_LAYERS.md). External SDK setup (PSYQ, **etc.**): [`docs/TOOLCHAINS.md`](docs/TOOLCHAINS.md). AI/editor index: [`.cursor/entry-point.mdc`](.cursor/entry-point.mdc).
 
 ## Repository layout
 
@@ -14,7 +21,7 @@
 | [`_compilers/`](_compilers/) | Bundled or linked toolchains; SGDK copy under `_compilers/sgdk` (optional) |
 | [`build/`](build/) | Extra build logs / ASM68K outputs (artifacts gitignored) |
 | [`server/`](server/) | `mixnetd` — TCP protocol v0 + extensions — [server/README.md](server/README.md) |
-| [`clients/`](clients/) | Amiga, Win9x, POSIX, **Genesis** (ROM + line layer), N64/PSX/PS2 stubs; shared headers in [`include/`](clients/include/) — [clients/README.md](clients/README.md) |
+| [`clients/`](clients/) | Amiga, Win9x, POSIX, **Genesis** (ROM + line layer), N64, **PSX** (Mixnet Navigator + [`BUILD-PS1.md`](clients/psx/BUILD-PS1.md)), PS2 stubs; shared headers in [`include/`](clients/include/) — [clients/README.md](clients/README.md) |
 | [`docs/`](docs/) | [Index](docs/README.md), [changelog](docs/changelog.md), [toolchains](docs/TOOLCHAINS.md), [repo layers](docs/REPO_LAYERS.md) |
 | [`.cursor/`](.cursor/) | AI/editor documentation (protocol, platforms, 68k) |
 
