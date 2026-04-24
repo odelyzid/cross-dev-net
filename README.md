@@ -72,13 +72,15 @@ Optional: `MIXNETD_IDLE_SEC=600` to drop idle TCP sessions. Default listen port:
 
 ## Git
 
+**Upstream (this worktree):** [github.com/odelyzid/cross-dev-net](https://github.com/odelyzid/cross-dev-net)
+
 Use the root [`.gitignore`](.gitignore) and [`.gitattributes`](.gitattributes). Do not commit `clients/genesis/out/`, `build/genesis` binaries, `clients/genesis/src/ozworld_68mix.s`, or `server/target/`. **One repo at the project root** — do not add a nested `server/.git`.
 
-To publish an existing tree (after `git init` and at least one commit):
+To publish from a fresh clone (or a tree without `origin` yet):
 
 ```bash
 git status   # ensure build artifacts stay untracked
-git remote add origin <your-repo-url>
+git remote add origin https://github.com/odelyzid/cross-dev-net.git
 git branch -M main
 git push -u origin main
 ```
