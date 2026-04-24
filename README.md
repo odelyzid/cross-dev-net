@@ -3,7 +3,7 @@
 **At a glance**
 
 - **Sega / OzWorld (optional):** SGDK game + assets live under [`clients/genesis/`](clients/genesis/) (`src/`, `res/`, `inc/`). Root [`build.bat`](build.bat) / [`build.ps1`](build.ps1) run `make` with that folder as the project directory; **ROM output:** `clients/genesis/out/rom.bin`.
-- **mixnet (hub + clients):** [`server/`](server/) is **mixnetd** (TCP line protocol). [`clients/`](clients/) is portable C (Win9x, POSIX, Amiga, [`mixnet_line`](clients/genesis/mixnet_line.c) for MD bridges, stubs for N64/PS1/PS2). **Shared** framing in [`clients/include/`](clients/include/).
+- **mixnet (hub + clients):** [`server/`](server/) is **mixnetd** (TCP line protocol). [`clients/`](clients/) is portable C (Win9x, POSIX, Amiga, **line framing** in [`clients/common/`](clients/common/) for **Genesis, N64, PS1** bridges, plus stubs for PS2, etc.). **Constants** in [`clients/include/`](clients/include/).
 - You can work on **BBS / chat** without building the **Genesis ROM**; see [`docs/REPO_LAYERS.md`](docs/REPO_LAYERS.md). External SDK notes (PSYQ, libdragon): [`docs/TOOLCHAINS.md`](docs/TOOLCHAINS.md). Cursor: [`.cursor/`](.cursor/entry-point.mdc).
 
 ## Repository layout

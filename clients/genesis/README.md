@@ -12,8 +12,8 @@ Stock Mega Drive does **not** run TCP/IP on-cart without extra hardware. For the
 
 | File | Role |
 | --- | --- |
-| [`mixnet_line.h`](mixnet_line.h) | Line RX state machine (CRLF) + `mixnet_write_line` |
-| [`mixnet_line.c`](mixnet_line.c) | No SGDK required — include from your SGDK `main.c` |
+| [`mixnet_line.h`](mixnet_line.h) | Re-exports shared [`../common/mixnet_line.h`](../common/mixnet_line.h) (line RX + `mixnet_write_line`) |
+| [`mixnet_line.c`](mixnet_line.c) | Includes [`../common/mixnet_line.c`](../common/mixnet_line.c) (single implementation for all clients) |
 
 ## Data path (ASCII, same as TCP wire)
 

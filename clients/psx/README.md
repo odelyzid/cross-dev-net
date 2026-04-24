@@ -1,17 +1,15 @@
-# PlayStation 1 (PSX / R3000 stub)
+# PlayStation 1 (PSX / R3000)
 
-- **Status:** `mixnet_stub.c` — `main` placeholder only. Wire real networking only if you integrate **sockets** (homebrew) or a **byte bridge**; retail PS1 has no public TCP to the world.
-- **Line layer:** use [`../genesis/mixnet_line.c`](../genesis/mixnet_line.c) (CPU-agnostic) if you have a one-byte read/write path.
-- **PSYQ (this machine):** a tree lives at `E:\Emulation\psyq` — set **`PSYQ_ROOT`** to that path and fix `PSPATHS.BAT` (stock file assumes `C:\Psyq`). See [`../../docs/TOOLCHAINS.md`](../../docs/TOOLCHAINS.md).
-- **Other:** modern **psx** / **Nugget**-style; link flags are project-specific.
+- **Code:** `mixnet_stub.c` **includes** [`../common/mixnet_line.c`](../common/mixnet_line.c) and runs a **self-test** (JOIN write + INFO line parse). Wire **`mixnet_psx_stub_tx`** to your **SIO / parallel / homebrew** byte sink; feed **`mixnet_line_rx_byte`** from the bridge.
+- **PSYQ (this machine):** `E:\Emulation\psyq` — set **`PSYQ_ROOT`**, fix `PSPATHS.BAT`. See [`../../docs/TOOLCHAINS.md`](../../docs/TOOLCHAINS.md).
+- **Other:** Nugget / **ps1**-style; link flags are project-specific.
+- **Spec:** [protocol v0](../../.cursor/.documentation/cross-net/protocol-v0.mdc). Line API: [`../common/README.md`](../common/README.md).
 
 ## Cross-build (illustrative)
 
 ```text
-# Replace with your mipsel-elf / ps1 toolchain
-cc -c clients/psx/mixnet_stub.c
+# One source unit — includes common/mixnet_line.c
+mipsel-elf-gcc -c -Iclients/include -Iclients/common clients/psx/mixnet_stub.c
 ```
 
-## Spec
-
-[protocol v0](../../.cursor/.documentation/cross-net/protocol-v0.mdc)
+(Adjust includes for your project layout; paths must find `../include` and `../common` from the stub.)
