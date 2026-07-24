@@ -1,10 +1,11 @@
 /*
  * POSIX test / dev client (Linux, macOS, AmigaOS with ixemul + BSD stack, etc.).
- * Build:  cc -O2 -pthread -o mixnet mixnet.c
- * Amiga (example): m68k-amigaos-gcc -o mixnet mixnet.c -lpthread -lsocket (stack-specific)
+ * Build:  cc -O2 -pthread -o mixnet mixnet.c ../common/mixnet_packet.c
+ * Amiga (example): m68k-amigaos-gcc -o mixnet mixnet.c ../common/mixnet_packet.c -lpthread -lsocket
  */
 #define _POSIX_C_SOURCE 200809L
 #include "../include/mixnet_config.h"
+#include "../common/mixnet_packet.h"
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>
@@ -23,25 +24,51 @@ static bool g_stop;
 
 static void* reader_main(void* arg) {
 	(void)arg;
-	char buf[MIXNET_MAX_LINE + 4];
-	int pos = 0;
+	mixnet_pkt_rx_t pkt_rx;
+	int pkt_mode = 0; /* 0 = detect, 1 = binary packet, 2 = v0 text */
+	char line_buf[MIXNET_MAX_LINE + 4];
+	int line_pos = 0;
+	mixnet_pkt_rx_init(&pkt_rx);
+
 	for (;;) {
 		if (g_stop) break;
 		unsigned char b;
 		ssize_t n = recv(g_sock, &b, 1, 0);
 		if (n <= 0) break;
-		if (b == '\r') continue;
-		if (b == '\n') {
-			buf[pos] = '\0';
-			puts(buf);
-			fflush(stdout);
-			pos = 0;
-			continue;
+
+		/* auto-detect on first byte from server */
+		if (pkt_mode == 0) {
+			pkt_mode = (b == PKT_MAGIC) ? 1 : 2;
+			if (pkt_mode == 1)
+				mixnet_pkt_rx_init(&pkt_rx);
 		}
-		if (pos < (int)sizeof(buf) - 2)
-			buf[pos++] = (char)b;
-		else
-			pos = 0;
+
+		if (pkt_mode == 1) {
+			mixnet_pkt_t pkt;
+			int r = mixnet_pkt_rx_byte(&pkt_rx, (int)b, &pkt);
+			if (r == 1) {
+				char txt[MIXNET_MAX_LINE + 4];
+				if (mixnet_pkt_to_text(&pkt, txt, sizeof txt) == 0) {
+					puts(txt);
+					fflush(stdout);
+				}
+			} else if (r < 0) {
+				mixnet_pkt_rx_init(&pkt_rx);
+			}
+		} else {
+			if (b == '\r') continue;
+			if (b == '\n') {
+				line_buf[line_pos] = '\0';
+				puts(line_buf);
+				fflush(stdout);
+				line_pos = 0;
+				continue;
+			}
+			if (line_pos < (int)sizeof(line_buf) - 2)
+				line_buf[line_pos++] = (char)b;
+			else
+				line_pos = 0;
+		}
 	}
 	return NULL;
 }

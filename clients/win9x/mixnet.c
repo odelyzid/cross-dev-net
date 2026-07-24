@@ -1,7 +1,7 @@
 /*
  * 68mixCross console client for Windows 95/98/NT (Winsock 1.1).
- * Build (VC++ 5/6):  cl /W3 /Fe mixnet.exe mixnet.c /link wsock32.lib
- * MinGW:  gcc -std=c99 -O2 -o mixnet.exe mixnet.c -lwsock32
+ * Build (VC++ 5/6):  cl /W3 /Fe mixnet.exe mixnet.c ..\common\mixnet_packet.c /link wsock32.lib
+ * MinGW:  gcc -std=c99 -O2 -o mixnet.exe mixnet.c ../common/mixnet_packet.c -lwsock32
  */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -12,6 +12,7 @@
 #include <process.h>
 #include "../include/mixnet_config.h"
 #include "../include/mixnet_proto.h"
+#include "../common/mixnet_packet.h"
 
 #define MIXNET_W32_TITLE "68mix / mixnet"
 
@@ -46,25 +47,51 @@ static void print_usage(const char* argv0) {
 
 static unsigned __stdcall reader_main(void* arg) {
 	(void)arg;
-	char buf[MIXNET_MAX_LINE + 4];
-	int pos = 0;
+	mixnet_pkt_rx_t pkt_rx;
+	int pkt_mode = 0; /* 0 = detect, 1 = binary packet, 2 = v0 text */
+	char line_buf[MIXNET_MAX_LINE + 4];
+	int line_pos = 0;
+	mixnet_pkt_rx_init(&pkt_rx);
+
 	for (;;) {
 		if (InterlockedCompareExchange(&gStopReader, 0, 0) != 0) break;
 		unsigned char b;
 		int n = recv(gSock, (char*)&b, 1, 0);
 		if (n <= 0) break;
-		if (b == '\r') continue;
-		if (b == '\n') {
-			buf[pos] = '\0';
-			puts(buf);
-			fflush(stdout);
-			pos = 0;
-			continue;
+
+		/* auto-detect on first byte from server */
+		if (pkt_mode == 0) {
+			pkt_mode = (b == PKT_MAGIC) ? 1 : 2;
+			if (pkt_mode == 1)
+				mixnet_pkt_rx_init(&pkt_rx);
 		}
-		if (pos < (int)sizeof(buf) - 2)
-			buf[pos++] = (char)b;
-		else
-			pos = 0;
+
+		if (pkt_mode == 1) {
+			mixnet_pkt_t pkt;
+			int r = mixnet_pkt_rx_byte(&pkt_rx, (int)b, &pkt);
+			if (r == 1) {
+				char txt[MIXNET_MAX_LINE + 4];
+				if (mixnet_pkt_to_text(&pkt, txt, sizeof txt) == 0) {
+					puts(txt);
+					fflush(stdout);
+				}
+			} else if (r < 0) {
+				mixnet_pkt_rx_init(&pkt_rx);
+			}
+		} else {
+			if (b == '\r') continue;
+			if (b == '\n') {
+				line_buf[line_pos] = '\0';
+				puts(line_buf);
+				fflush(stdout);
+				line_pos = 0;
+				continue;
+			}
+			if (line_pos < (int)sizeof(line_buf) - 2)
+				line_buf[line_pos++] = (char)b;
+			else
+				line_pos = 0;
+		}
 	}
 	return 0;
 }
