@@ -77,3 +77,9 @@ These share the same framing and `ERR` pattern; unknown servers may reply `ERR u
 
 ### Idle timeout (mixnetd)
 - Environment variable `MIXNETD_IDLE_SEC=<seconds>`: if set, the server uses a read timeout; if no data arrives for that long, it sends `INFO idle_timeout` and closes the TCP session.
+
+## Binary packet mode (v1)
+
+mixnetd and all clients also support **binary packet framing** (length-prefixed, 5-byte header, typed payloads). Auto-detected on first byte: `0x58` → binary mode, otherwise v0 text.
+
+See [`.documentation/cross-net/packet-v1.mdc`](packet-v1.mdc) for the full spec. The same protocol state machine (HELLO/JOIN/MSG/...) operates unchanged — only the wire framing differs.

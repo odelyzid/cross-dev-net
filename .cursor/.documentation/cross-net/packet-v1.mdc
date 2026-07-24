@@ -1,0 +1,90 @@
+# Binary Packet Mode — v1 (normative)
+
+Binary packet framing for mixnet over any 8-bit byte stream (TCP, UART/serial, bridge). Complements v0 text protocol — auto-detected on first byte.
+
+## Auto-detect
+
+- **First byte received = `0x58` ('X')** → binary packet mode for the session
+- **First byte is any other value** → v0 ASCII text mode (existing protocol)
+- mixnetd peeks the first byte after TCP accept; clients auto-detect on first byte from server
+
+## Packet format
+
+```
+Byte:   0       1       2       3       4       5...n
+       +-------+-------+-------+-------+-------+-----------+
+       | magic | type  | flags | length (big-endian u16)   |
+       +-------+-------+-------+-------+-------+-----------+
+       | payload (length bytes, up to 512)                  |
+       +---------------------------------------------------+
+```
+
+- **magic (1):** `0x58` — sync marker and binary-mode discriminator
+- **type (1):** packet type (see catalog below)
+- **flags (1):** bitfield — `0x01` = ACK request, `0x02` = ACK response
+- **length (2):** payload length, big-endian (network byte order)
+- **payload (N):** raw bytes, meaning depends on type
+- **No checksum** — relies on TCP, or reliable UART with flow control
+
+## Type catalog
+
+| Value | Name | Payload | Maps from v0 |
+|-------|------|---------|-------------|
+| 0x01 | `PKT_HELLO` | nickname (ASCII, 1–32 bytes) | `HELLO <nick>` |
+| 0x02 | `PKT_HELLO_OK` | session_id (ASCII hex) | `OK hello <session_id>` |
+| 0x03 | `PKT_ERR` | error code text | `ERR <code>` |
+| 0x04 | `PKT_JOIN` | room name (ASCII) | `JOIN <room>` |
+| 0x05 | `PKT_JOIN_OK` | room name | `OK join <room>` |
+| 0x06 | `PKT_MSG` | chat text | `MSG <text>` |
+| 0x07 | `PKT_PRIVMSG` | `<nick> <text>` (space-delimited) | `PRIVMSG <nick> <text>` |
+| 0x08 | `PKT_PING` | (empty) | `PING` |
+| 0x09 | `PKT_PONG` | (empty) | `PONG` |
+| 0x0A | `PKT_QUIT` | (empty) | `QUIT` |
+| 0x0B | `PKT_QUIT_OK` | (empty) | `OK bye` |
+| 0x0C | `PKT_PART` | (empty) | `PART` |
+| 0x0D | `PKT_PART_OK` | (empty) | `OK part` |
+| 0x0E | `PKT_WHO` | (empty) | `WHO` |
+| 0x0F | `PKT_WHO_RESP` | `<room> <csv nicks>` | `OK who <room> <nicks>` |
+| 0x10 | `PKT_ROOMS` | (empty) | `ROOMS` |
+| 0x11 | `PKT_ROOMS_RESP` | csv room list | `OK rooms <list>` |
+| 0x12 | `PKT_INFO` | text | `INFO <text>` |
+| 0x80+ | Application-defined | game state, file chunks, etc. | — |
+
+## Session rules
+
+Same as v0 protocol: `HELLO` before `JOIN` before `MSG`. Idle timeout, nick/room validation, join/leave notifications — identical behavior; only the wire format changes.
+
+## Server ↔ client flow (binary mode)
+
+```
+Client                          mixnetd
+  │── 0x58 PKT_HELLO "alice" ──▶│
+  │◀── 0x58 PKT_HELLO_OK "0001" ─│
+  │── 0x58 PKT_JOIN "lobby" ───▶│
+  │◀── 0x58 PKT_JOIN_OK "lobby" ─│
+  │── 0x58 PKT_MSG "hi all" ───▶│
+  │◀── 0x58 PKT_PRIVMSG "bob hi" ─│ (broadcast)
+```
+
+## Conversion to v0 text
+
+Every binary packet maps to a v0 text line and vice versa, via:
+- `pkt_to_text()` — binary → ASCII line (C: `mixnet_pkt_to_text()`, Rust: `pkt_to_text()`)
+- `text_to_pkt()` — ASCII line → binary (C: `mixnet_text_to_pkt()`, Rust: `text_line_to_pkt_bytes()`)
+
+This allows the server's internal `handle_line()` logic to remain unchanged: the binary reader converts packets to text before dispatch, and the binary writer converts text replies to packets before sending.
+
+## Implementation
+
+| Component | File | Key functions |
+|-----------|------|--------------|
+| Shared C library | `clients/common/mixnet_packet.c` / `.h` | `mixnet_pkt_rx_byte()`, `mixnet_pkt_send()`, `mixnet_pkt_to_text()`, `mixnet_text_to_pkt()` |
+| mixnetd (Rust) | `server/src/main.rs` | `run_binary_reader()`, `text_line_to_pkt_bytes()` |
+| Self-test | `clients/common/mixnet_packet.c` (via `pkt_selftest_wrapper.c`) | `mixnet_packet_selftest()` |
+
+## See also
+
+- `.documentation/cross-net/protocol-v0.mdc` — v0 text protocol spec
+- `server/src/main.rs` — Rust binary reader/writer implementation
+- `clients/common/mixnet_packet.h` — C type definitions and API
+- `.plans/PACKET-PLAN.md` — implementation plan and remaining phases

@@ -17,9 +17,11 @@
 ## Order of attack
 1. **Win9x + hub** — Wire format and **mixnetd** on LAN; `clients/win9x`, `server/`.
 2. **Amiga + Genesis line layer** — `clients/amiga`, `clients/genesis` (byte stream to bridge).
-3. **Other consoles** — Stubs under `clients/n64|psx|ps2` until a real I/O path is fixed; optional v1 **binary** framing later.
+3. **Other consoles** — Stubs under `clients/n64|psx|ps2`; serial bridge via `clients/bridge/mixnet_serial_bridge.py`.
+4. **Binary packet mode** — `packet-v1.mdc`: length-prefixed binary framing, auto-detected on first byte `0x58`. Implemented in mixnetd and all clients.
 
 ## See also
-- `.documentation/cross-net/protocol-v0.mdc` — normative line protocol.
+- `.documentation/cross-net/protocol-v0.mdc` — normative v0 text line protocol.
+- `.documentation/cross-net/packet-v1.mdc` — binary packet mode (v1, auto-detected).
 - `.documentation/cross-net/win9x-client-checklist.mdc` — build and test checklist.
 - `.documentation/platforms/win9x.mdc` — OS API and playbook entry.

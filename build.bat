@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
-REM 68mixCross — portable build (Genesis SGDK, optional ASM68K, server)
-REM Usage:  build.bat [genesis^|server^|asm^|all^|clean^|help]
+REM 68mixCross — portable build (Genesis SGDK, optional ASM68K, server, C clients)
+REM Usage:  build.bat [genesis^|server^|client^|asm^|all^|clean^|help]
 REM Set GDK_WIN to your SGDK path if not using bundled _compilers\sgdk
 
 set "ROOT=%~dp0"
@@ -17,6 +17,7 @@ if /I "%CMD%"=="help" goto help
 
 if /I "%CMD%"=="clean" goto clean
 if /I "%CMD%"=="server" goto server
+if /I "%CMD%"=="client" goto client
 if /I "%CMD%"=="asm" goto asm
 if /I "%CMD%"=="all" goto all
 if /I "%CMD%"=="genesis" goto genesis
@@ -60,6 +61,11 @@ if errorlevel 1 exit /b 1
 echo [build] mixnetd: server\target\x86_64-pc-windows-gnu\release\mixnetd.exe
 exit /b 0
 
+:client
+echo [build] C clients (Win9x + POSIX)...
+call "%ROOT%\clients\build_clients.cmd"
+exit /b %ERRORLEVEL%
+
 :all
 call "%~f0" genesis || exit /b 1
 call "%~f0" server
@@ -79,6 +85,7 @@ echo 68mixCross build.bat
 echo   build.bat         - SGDK release (rom in clients\genesis\out\)
 echo   build.bat all     - Genesis + mixnetd server
 echo   build.bat server  - mixnetd only (uses build.ps1)
+echo   build.bat client  - Build C clients (Win9x + POSIX/MinGW)
 echo   build.bat asm     - optional ASM68K ozworld init
 echo   build.bat clean   - remove common build outputs
 echo Set GDK_WIN if SGDK is not at ROOT\_compilers\sgdk
