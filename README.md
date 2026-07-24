@@ -107,6 +107,7 @@ Console (UART/SIO)  ──serial──▶  bridge.py  ──TCP──▶  mixnet
 - **Two serial modes:** `--serial COM3 --baud 115200` (physical) or `--serial-tcp 127.0.0.1:5678` (emulator tunnel for DuckStation/PCSX-Redux).
 - **Any RS-232C device** (Amiga, X68000, PC-98) can reuse the same bridge unchanged — just port `mixnet_line.c` with a platform UART driver.
 - **Python bridge:** `pip install -r clients/bridge/requirements.txt`; run `python clients/bridge/mixnet_serial_bridge.py --serial COM3 --server 127.0.0.1 --port 19677`.
+- **Serial pinouts & wiring:** see [`docs/SERIAL-HARDWARE.md`](docs/SERIAL-HARDWARE.md) for PS1 SIO1, Amiga RS-232, and Genesis flashcart serial pinouts plus the packet opcode catalog.
 
 ## Platform coverage / future
 

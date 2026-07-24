@@ -4,6 +4,7 @@
 | --- | --- |
 | [REPO_LAYERS.md](REPO_LAYERS.md) | What requires the **Genesis/SGDK** tree vs **mixnet-only** work (`server/`, most of `clients/`). |
 | [TOOLCHAINS.md](TOOLCHAINS.md) | **PSYQ** (PS1), **libdragon** (N64), env vars, and where stubs live. |
+| [SERIAL-HARDWARE.md](SERIAL-HARDWARE.md) | **Serial pinouts & cable wiring** for PS1, Amiga, Genesis + packet opcode table. |
 | [changelog.md](changelog.md) | **Build / release log** (OzWorld, cross-asm) — fill when you complete a real build. |
 
 **Also useful**
