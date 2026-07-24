@@ -2,6 +2,8 @@
 
 **68mixCross** is a **cross-platform “dev BBS / chat” stack**: a **Rust** TCP hub (**mixnetd**) and **thin C clients** (desktop, Amiga, console) that all speak the same **line-based mixnet v0** protocol. The same design ties a **Sega Mega Drive ROM** and **console bridges** (e.g. N64, **PlayStation 1** text shell) to one server—so you can hack **rooms, nicks, and wire protocol** on the PC, then point hardware or emulators at the same hub.
 
+<p align="center"><img src="cross.png" alt="68mixCross" width="320"/></p>
+
 | Layer | What you get |
 | --- | --- |
 | **Server** | [`server/`](server/) — **mixnetd** (TCP; default **19677**). The core product for local dev and “LAN party” BBS style sessions. |
@@ -21,7 +23,7 @@
 | [`_compilers/`](_compilers/) | Bundled or linked toolchains; SGDK copy under `_compilers/sgdk` (optional) |
 | [`build/`](build/) | Extra build logs / ASM68K outputs (artifacts gitignored) |
 | [`server/`](server/) | `mixnetd` — TCP protocol v0 + extensions — [server/README.md](server/README.md) |
-| [`clients/`](clients/) | Amiga, Win9x, POSIX, **Genesis** (ROM + line layer), N64, **PSX** (Mixnet Navigator + [`BUILD-PS1.md`](clients/psx/BUILD-PS1.md)), PS2 stubs; shared headers in [`include/`](clients/include/) — [clients/README.md](clients/README.md) |
+| [`clients/`](clients/) | Amiga (full TCP), Win9x (full TCP), POSIX (full TCP), **Genesis** (ROM + line layer), N64 (stub), **PSX** (full serial UI: Mixnet Navigator), PS2 (placeholder); shared headers & framing — [clients/README.md](clients/README.md) |
 | [`docs/`](docs/) | [Index](docs/README.md), [changelog](docs/changelog.md), [toolchains](docs/TOOLCHAINS.md), [repo layers](docs/REPO_LAYERS.md) |
 | [`.cursor/`](.cursor/) | AI/editor documentation (protocol, platforms, 68k) |
 
@@ -68,14 +70,63 @@ server\target\x86_64-pc-windows-gnu\release\mixnetd.exe
 
 Optional: `MIXNETD_IDLE_SEC=600` to drop idle TCP sessions. Default listen port: **19677** (or pass a port as the first argument).
 
-## Clients (dev)
+## Client implementation status
 
-- **Win32 / Win9x style:** build [`clients/win9x/mixnet.c`](clients/win9x/mixnet.c) with `cl` + `wsock32` or `gcc` + `-lwsock32`.
-- **Linux / WSL / macOS:** `cc -O2 -pthread -o mixnet clients/posix/mixnet.c`
+| Client | Path | Type | Status |
+|--------|------|------|--------|
+| **Win9x** | `clients/win9x/mixnet.c` | Direct TCP (Winsock 1.1) | Full client with threads, all verbs, `:quit` |
+| **POSIX** | `clients/posix/mixnet.c` | Direct TCP (BSD sockets) | Full client with pthreads, all verbs |
+| **Amiga** | `clients/amiga/mixnet.c` | Direct TCP (AmigaOS sockets) | Full client (same model as POSIX) |
+| **PS1** | `clients/psx/` | SIO1 serial ↔ PC bridge | Full UI (Mixnet Navigator: text browser with scrollback, Location bar, menu keys); real SIO1 at 115200 8N1 |
+| **Genesis** | `clients/genesis/` | Serial cart/GPIO ↔ PC bridge | Re-exports `mixnet_line` framing; needs UART ISR wiring by developer |
+| **N64** | `clients/n64/mixnet_stub.c` | Serial/USB ↔ PC bridge | Stub with self-test; `mixnet_on_server_line` is empty — user must wire UART/PI FIFO |
+| **PS2** | `clients/ps2/mixnet_stub.c` | TCP or bridge (TBD) | Placeholder (`int main(){ return 0; }`) — needs PS2SDK + ps2ip/lwIP |
+| **Bridge** | `clients/bridge/mixnet_serial_bridge.py` | Serial ↔ TCP relay | Fully functional; two daemon threads, supports physical COM or emulator TCP tunnel |
+
+Build commands (from repo root):
+
+| Client | Command |
+|--------|---------|
+| **Win32 (MinGW)** | `gcc -std=c99 -O2 -Wall -o clients/win9x/mixnet.exe clients/win9x/mixnet.c -lwsock32` |
+| **POSIX** | `cc -O2 -pthread -o mixnet clients/posix/mixnet.c` |
+| **Amiga** | `m68k-amigaos-gcc -O2 -std=c99 -o mixnet clients/amiga/mixnet.c -lpthread -lsocket` |
+
+All direct-TCP clients accept: `mixnet <host> <port> [nick] [room]` — `:quit` to send QUIT.
+
+## Serial bridging (console → PC → mixnetd)
+
+Consoles without TCP/IP (Genesis, PS1, N64) connect via serial to a PC running `mixnet_serial_bridge.py`, which relays bytes to and from mixnetd.
+
+```
+Console (UART/SIO)  ──serial──▶  bridge.py  ──TCP──▶  mixnetd (port 19677)
+     ▲                            (bi-directional        ▲
+     └──── serial byte pipe ────── byte relay) ──────────┘
+```
+
+- **Bridge is framing-agnostic** — it chunks serial and TCP data in 4096-byte blocks. Line framing (`\n` delimiting) is handled entirely on the console side via [`clients/common/mixnet_line.c`](clients/common/mixnet_line.c).
+- **Two serial modes:** `--serial COM3 --baud 115200` (physical) or `--serial-tcp 127.0.0.1:5678` (emulator tunnel for DuckStation/PCSX-Redux).
+- **Any RS-232C device** (Amiga, X68000, PC-98) can reuse the same bridge unchanged — just port `mixnet_line.c` with a platform UART driver.
+- **Python bridge:** `pip install -r clients/bridge/requirements.txt`; run `python clients/bridge/mixnet_serial_bridge.py --serial COM3 --server 127.0.0.1 --port 19677`.
+
+## Platform coverage / future
+
+| Platform | CPU | Direct TCP | Serial bridge | Notes |
+|----------|-----|------------|---------------|-------|
+| Windows 9x+ | x86 | ✅ Win9x client | — | Winsock 1.1 |
+| Linux / macOS | x86/ARM | ✅ POSIX client | — | BSD sockets + pthreads |
+| Amiga (OS 3.x) | 68000 | ✅ Amiga client | ✅ (via RS-232) | AmiTCP/Roadshow |
+| PlayStation 1 | R3000 | ❌ | ✅ PS1 SIO1 + Navigator UI | Full text shell |
+| Mega Drive/Genesis | 68000 | ❌ | ✅ via `mixnet_line` | Needs UART cart (EverDrive, etc.) |
+| Nintendo 64 | R4300 | ❌ | ✅ stub (empty callback) | Needs UART/64Drive/PI FIFO driver |
+| PlayStation 2 | EE | ❌ placeholder | ❌ | Needs PS2SDK + ps2ip/lwIP |
+| **X68000** | 68000 | ❌ | ✅ (easy — RS-232C built-in) | No client code yet; `build-68mix.sh` already outputs `out/x68000/ozworld.x` demo binary |
+| **PC-98** | x86/V30 | ❌ | ✅ (easy — RS-232C built-in) | No client code yet; needs x86 C (unlike rest of repo) |
+
+**Shortest path to add a platform:** serial bridge. Port [`clients/common/mixnet_line.c`](clients/common/mixnet_line.c) (pure C89, CPU-agnostic) with a UART `putbyte`/`getbyte` driver. The Python bridge and mixnetd need zero changes.
 
 ## Full cross-asm script (Unix / Git Bash)
 
-[`build-68mix.sh`](build-68mix.sh) can drive extra targets (WSL, vasm, Amiga, etc.); it expects a Unix-like environment and your own toolchains. It also copies `clients/genesis/src/ozworld_68mix.s` (gitignored) during the run.
+[`build-68mix.sh`](build-68mix.sh) can drive extra targets (WSL, vasm, Amiga, X68000); it expects a Unix-like environment and your own toolchains. It also copies `clients/genesis/src/ozworld_68mix.s` (gitignored) during the run.
 
 ## Git
 

@@ -1,7 +1,7 @@
 /*
  * 68mixCross — PlayStation: Mixnet Navigator (Netscape-style hub for mixnetd).
- * Serial (SIO1) + PC bridge: PS1 line-framed bytes <-> host TCP to mixnetd.
- * Build:  mixnet_navigator.c + mixnet_stub.c  (+ common/mixnet_line in navigator TU)
+ * Serial (SIO1) + PC bridge: PS1 packet-framed bytes <-> host TCP to mixnetd.
+ * Build:  mixnet_navigator.c + mixnet_stub.c  (includes common/mixnet_packet.c + mixnet_line.c)
  */
 #include "mixnet_psx.h"
 #include "mixnet_navigator.h"
@@ -9,6 +9,8 @@
 #include "../include/mixnet_proto.h"
 #include "../common/mixnet_line.h"
 #include "../common/mixnet_line.c"
+#include "../common/mixnet_packet.h"
+#include "../common/mixnet_packet.c"
 
 #include <sys/types.h>
 #include <libetc.h>
@@ -31,6 +33,8 @@ static unsigned long s_prev_pad;
 static int s_cool;
 
 static mixnet_line_rx_t s_line_rx;
+static mixnet_pkt_rx_t s_pkt_rx;
+static int s_pkt_mode; /* 0=detect, 1=packet, 2=text */
 static char s_view[4096];
 
 /* ---- in-memory only (line layer self-test; no hardware) ---- */
@@ -72,15 +76,35 @@ static void mixnet_psx_link_tx(void* u, int byte) {
 	(void)sio_putb(byte);
 }
 
-/* Serial RX = one line at a time from mixnetd (bridge relays TCP to SIO). */
+/* Serial RX = auto-detect packet or v0 text, one complete message at a time. */
 static void sio_pump_incoming(void) {
 	char lbuf[MIXNET_MAX_LINE + 4];
 	if (!s_sio_ok) return;
 	_sio_control(2, 1, 0);
 	while (((unsigned long)_sio_control(0, 0, 0) & (unsigned long)SR_RXRDY) != 0) {
 		int c = (int)(unsigned char)_sio_control(0, 4, 0);
-		if (mixnet_line_rx_byte(&s_line_rx, c, lbuf, (size_t)sizeof lbuf))
-			(void)mixnet_nav_on_incoming_line(lbuf);
+
+		/* auto-detect on first byte from bridge */
+		if (s_pkt_mode == 0) {
+			s_pkt_mode = (c == PKT_MAGIC) ? 1 : 2;
+			if (s_pkt_mode == 1)
+				mixnet_pkt_rx_init(&s_pkt_rx);
+		}
+
+		if (s_pkt_mode == 1) {
+			mixnet_pkt_t pkt;
+			int r = mixnet_pkt_rx_byte(&s_pkt_rx, c, &pkt);
+			if (r == 1) {
+				char txt[MIXNET_MAX_LINE + 4];
+				if (mixnet_pkt_to_text(&pkt, txt, sizeof txt) == 0)
+					(void)mixnet_nav_on_incoming_line(txt);
+			} else if (r < 0) {
+				mixnet_pkt_rx_init(&s_pkt_rx);
+			}
+		} else {
+			if (mixnet_line_rx_byte(&s_line_rx, c, lbuf, (size_t)sizeof lbuf))
+				(void)mixnet_nav_on_incoming_line(lbuf);
+		}
 	}
 }
 
@@ -140,22 +164,27 @@ void mixnet_psx_blt_screen(const char* text, int n_bytes) {
 	FntFlush(-1);
 }
 
-/* ---- line layer smoke test (RAM only) ---- */
+/* ---- packet layer smoke test (RAM only) ---- */
 static int line_layer_selftest(void) {
-	mixnet_line_rx_t rx;
-	char out[MIXNET_MAX_LINE + 4];
-	int i;
-	const char* sample = "INFO line-test\r\n";
+	mixnet_pkt_t tx, rx;
+	mixnet_pkt_rx_t state;
+	int i, ok = 0;
 	s_test_len = 0u;
-	if (mixnet_write_line("JOIN x", selftest_link_tx, NULL) != 0) return 0;
-	if (s_test_len < 4u) return 0;
-	mixnet_line_rx_init(&rx);
-	for (i = 0; sample[i]; i++) {
-		if (mixnet_line_rx_byte(&rx, (int)(unsigned char)sample[i], out, (size_t)sizeof out)) {
-			if (strcmp(out, "INFO line-test") == 0) return 1;
-		}
+	mixnet_pkt_start(&tx, PKT_HELLO, 0);
+	if (mixnet_pkt_append(&tx, "psx", 3) != 0) return 0;
+	if (mixnet_pkt_send(&tx, selftest_link_tx, NULL) != 0) return 0;
+	if (s_test_len < (unsigned)PKT_HEADER_SIZE) return 0;
+	mixnet_pkt_rx_init(&state);
+	for (i = 0; i < (int)s_test_len; i++) {
+		int r = mixnet_pkt_rx_byte(&state, (int)s_test_tx[i], &rx);
+		if (r == 1) { ok = 1; break; }
+		if (r < 0) return 0;
 	}
-	return 0;
+	if (!ok) return 0;
+	if (rx.hdr[0] != PKT_MAGIC) return 0;
+	if (rx.hdr[1] != PKT_HELLO) return 0;
+	if (rx.payload_len != 3) return 0;
+	return (memcmp(rx.payload, "psx", 3) == 0) ? 1 : 0;
 }
 
 /* Pad: edge-triggered, short cool-down to limit repeats */
@@ -188,6 +217,8 @@ int main(int argc, char** argv) {
 	mixnet_psx_init_video();
 	mixnet_nav_init(mixnet_psx_link_tx, NULL);
 	mixnet_line_rx_init(&s_line_rx);
+	mixnet_pkt_rx_init(&s_pkt_rx);
+	s_pkt_mode = 0;
 	s_prev_pad = PadRead(0);
 	s_cool = 0;
 	for (;;) {
