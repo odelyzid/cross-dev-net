@@ -8,9 +8,10 @@ endif
 include $(GDK)/common.mk
 
 # === FIX für Windows Error 5 (rescomp darf nicht in res/ schreiben) ===
+OUT_RES := $(OUT)/res
 $(RES)/%.rs: $(RES)/%.res
 	$(MKDIR) -p $(OUT_RES)
-	$(RESCOMP) $< $$ (OUT_RES)/ $$(notdir $*) -dep $$ (OUT)/ $$*.o
+	$(RESCOMP) $< $(OUT_RES)/$(notdir $*) -dep $(OUT)/$*.o
 
 SRC := src
 RES := res

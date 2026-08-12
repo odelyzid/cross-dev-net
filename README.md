@@ -7,7 +7,7 @@
 | Layer | What you get |
 | --- | --- |
 | **Server** | [`server/`](server/) — **mixnetd** (TCP; default **19677**). The core product for local dev and “LAN party” BBS style sessions. |
-| **Genesis (optional)** | [`clients/genesis/`](clients/genesis/) — SGDK + [`mixnet_line`](clients/genesis/mixnet_line.c) for serial/bridge; **ROM:** `clients/genesis/out/rom.bin` via root [`build.bat`](build.bat) / [`build.ps1`](build.ps1). |
+| **Genesis (optional)** | [`clients/genesis/`](clients/genesis/) — SGDK **serial terminal ROM**: scrollback chat UI + on-screen keyboard over 4800 bps serial → PC bridge → **mixnetd**. **ROM:** `clients/genesis/out/rom.bin` via root [`build.bat`](build.bat) / [`build.ps1`](build.ps1). |
 | **PS1 (PSYQ)** | [`clients/psx/`](clients/psx/) — **Mixnet Navigator**: text UI shell for the same protocol, built for **CCPSX**; see [clients/psx/README.md](clients/psx/README.md) and [clients/psx/BUILD-PS1.md](clients/psx/BUILD-PS1.md). |
 | **Other clients** | Win9x, POSIX, Amiga, more stubs in [`clients/`](clients/); shared framing in [`clients/common/`](clients/common/), constants in [`clients/include/`](clients/include/). |
 
