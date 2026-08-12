@@ -18,7 +18,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('All', 'Genesis', 'Server', 'Asm68k', 'Clean')]
+    [ValidateSet('All', 'Genesis', 'Server', 'Clean')]
     [string] $Target = 'All'
 )
 
@@ -30,6 +30,7 @@ function Get-GdkRoot {
     if ($env:GDK_WIN) { $candidates += $env:GDK_WIN }
     $candidates += (Join-Path $Root '_compilers\sgdk')
     if (Test-Path 'E:\Emulation\sgdk211') { $candidates += 'E:\Emulation\sgdk211' }
+    if (Test-Path 'E:\Emulation\SGDK_NEW') { $candidates += 'E:\Emulation\SGDK_NEW' }
     $tried = @()
     foreach ($p in $candidates) {
         if ([string]::IsNullOrWhiteSpace($p)) { continue }
@@ -58,24 +59,6 @@ function Invoke-GenesisBuild {
     Write-Host '[build] Genesis OK — see clients\genesis\out\ (rom.bin, etc.)'
 }
 
-function Invoke-Asm68k {
-    $asm = Join-Path $Root '_compilers\ASM68K\asm68k.exe'
-    $src = Join-Path $Root 'clients\genesis\src\ozworld_init_generic_genesis.s'
-    $outDir = Join-Path $Root 'build\genesis'
-    if (-not (Test-Path $asm)) { Write-Warning "ASM68K not at $asm - skip."; return }
-    if (-not (Test-Path $src)) { Write-Warning "Source not found: $src - skip."; return }
-    if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
-    $outBin = Join-Path $outDir 'OZWORLD.BIN'
-    $log = Join-Path $outDir 'build.log'
-    $asmArgs = @(
-        '/p', '/i', '/w', '/ov+', '/oos+', '/oop+', '/oow+', '/ooz+', '/ooaq+', '/oosq+', '/oomq+', '/ow+', '/d',
-        "$src,$outBin,ozworld"
-    )
-    Write-Host ('[build] ASM68K: ' + $src + ' -> ' + $outBin)
-    & $asm @asmArgs 2>&1 | Tee-Object -FilePath $log
-    if ($LASTEXITCODE -ne 0) { throw "asm68k failed with exit $LASTEXITCODE" }
-}
-
 function Invoke-ServerBuild {
     $ms = if ($env:MSYS2_ROOT) { $env:MSYS2_ROOT } else { "D:\__SDKs Modding\msys64" }
     $mingwBin = Join-Path $ms 'mingw64\bin'
@@ -102,13 +85,9 @@ function Invoke-ServerBuild {
 function Invoke-Clean {
     Write-Host '[clean] build\genesis, clients\genesis\out, server\target'
     @(
-        (Join-Path $Root 'build\genesis\*.o'),
-        (Join-Path $Root 'build\genesis\*.bin')
-    ) | ForEach-Object { Get-Item $_ -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue }
-    $gout = Join-Path $Root 'clients\genesis\out'
-    if (Test-Path $gout) {
-        Get-ChildItem -Path $gout -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-    }
+        (Join-Path $Root 'build\genesis'),
+        (Join-Path $Root 'clients\genesis\out')
+    ) | ForEach-Object { Remove-Item -Recurse -Force $_ -ErrorAction SilentlyContinue }
     $st = Join-Path $Root 'server\target'
     if (Test-Path $st) { Remove-Item -Recurse -Force $st -ErrorAction SilentlyContinue }
     Write-Host '[clean] done.'
@@ -118,7 +97,6 @@ switch ($Target) {
     'Clean'  { Invoke-Clean; break }
     'Genesis' { Invoke-GenesisBuild; break }
     'Server'  { Invoke-ServerBuild; break }
-    'Asm68k'  { Invoke-Asm68k; break }
     'All' {
         Invoke-GenesisBuild
         Invoke-ServerBuild

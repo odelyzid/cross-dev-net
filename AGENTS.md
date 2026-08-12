@@ -19,7 +19,7 @@ Genesis re-exports `mixnet_line` via thin wrappers at `clients/genesis/mixnet_li
 
 | Variable | Purpose |
 |----------|---------|
-| `GDK_WIN` | SGDK root (default: `_compilers\sgdk`) |
+| `GDK_WIN` | SGDK root (default: `_compilers\sgdk`, else `E:\Emulation\sgdk211` / `E:\Emulation\SGDK_NEW`) |
 | `MSYS2_ROOT` | MSYS2 install (default: `D:\__SDKs Modding\msys64`) |
 | `MIXNETD_IDLE_SEC` | mixnetd idle timeout in seconds |
 | `PSYQ_ROOT` / `LIBDRAGON_ROOT` | PS1 / N64 SDK roots (optional, machine-local) |
@@ -28,8 +28,8 @@ Genesis re-exports `mixnet_line` via thin wrappers at `clients/genesis/mixnet_li
 
 Always build **from the repo root**, not from subdirectories.
 
-**Windows (cmd):** `build.bat [genesis|server|client|asm|all|clean]` — default: genesis.
-**Windows (PowerShell):** `.\build.ps1 -Target [Genesis|Server|Asm68k|Clean|All]` — default: All.
+**Windows (cmd):** `build.bat [genesis|server|client|all|clean]` — default: genesis.
+**Windows (PowerShell):** `.\build.ps1 -Target [Genesis|Server|Clean|All]` — default: All.
 
 - `build.bat genesis` — SGDK `release` → `clients/genesis/out/rom.bin`
 - `build.bat server` — `cargo build --release` → `server/target/x86_64-pc-windows-gnu/release/mixnetd.exe`
@@ -111,8 +111,7 @@ Packet types (C enum): `clients/common/mixnet_packet.h` (`PKT_HELLO`, `PKT_JOIN`
 
 ## Toolchain files
 
-- `_compilers/ASM68K/asm68k.exe` — optional, for `ozworld_init_generic_genesis.s`.
-- `_compilers/sgdk` — optional bundled SGDK; `build.ps1` also checks `GDK_WIN` and `E:\Emulation\sgdk211`.
+- `_compilers/sgdk` — optional bundled SGDK (incomplete here); build scripts prefer `GDK_WIN`, then `E:\Emulation\sgdk211`, then `E:\Emulation\SGDK_NEW`.
 - `.cursor/entry-point.mdc` — the "Eve" persona prompt (not canonical project config).
 - `.cursor/.documentation/cross-net/` — protocol specs, platform docs, project index.
-- `.plans/PACKET-PLAN.md` — implementation plan for the binary packet layer (phases 1-7, with phases 5-6 pending: Genesis UI, Amiga serial).
+- `.plans/PACKET-PLAN.md` — implementation plan for the binary packet layer (phases 1-4 done, phase 5 Genesis UI done as v0.9.0, phase 6 Amiga serial pending).
