@@ -6,9 +6,14 @@
  */
 #define _DEFAULT_SOURCE
 #define _POSIX_C_SOURCE 200809L
+#ifndef __USE_BSD
+#define __USE_BSD
+#endif
 #include "../include/mixnet_config.h"
 #include "../include/mixnet_proto.h"
 #include "../common/mixnet_packet.h"
+#include <sys/types.h>
+#include <stdint.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -18,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 static int g_sock = -1;
