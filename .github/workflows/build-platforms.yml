@@ -1,0 +1,197 @@
+name: build-platforms
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  server-linux:
+    name: mixnetd (Linux x86_64)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Unit tests
+        working-directory: server
+        run: cargo test
+      - name: Build release
+        working-directory: server
+        run: cargo build --release --target x86_64-unknown-linux-gnu
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnetd-linux-x86_64
+          path: server/target/x86_64-unknown-linux-gnu/release/mixnetd
+
+  server-windows:
+    name: mixnetd (Windows x86_64)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MinGW cross compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-gnu
+      - name: Build release
+        working-directory: server
+        # --target overrides the [build] target in server/.cargo/config.toml;
+        # the env linker above overrides its hardcoded MSYS2 path.
+        run: cargo build --release --target x86_64-pc-windows-gnu
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnetd-windows-x86_64
+          path: server/target/x86_64-pc-windows-gnu/release/mixnetd.exe
+
+  server-macos:
+    name: mixnetd (macOS arm64 + x86_64)
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - name: Build release (arm64)
+        working-directory: server
+        run: cargo build --release --target aarch64-apple-darwin
+      - name: Build release (x86_64)
+        working-directory: server
+        run: cargo build --release --target x86_64-apple-darwin
+      - name: Upload artifact (arm64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnetd-macos-arm64
+          path: server/target/aarch64-apple-darwin/release/mixnetd
+      - name: Upload artifact (x86_64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnetd-macos-x86_64
+          path: server/target/x86_64-apple-darwin/release/mixnetd
+
+  client-win9x:
+    name: Win9x client (Windows x86_64)
+    runs-on: windows-2022
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MinGW (MSYS2)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: mingw-w64-x86_64-gcc
+      - name: Build client
+        run: |
+          $env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
+          cmd /c clients\win9x\build.cmd
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnet-win9x-x86_64
+          path: clients/win9x/mixnet.exe
+
+  client-posix-linux:
+    name: POSIX client (Linux x86_64)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build client
+        run: cc -O2 -pthread -o mixnet clients/posix/mixnet.c clients/common/mixnet_packet.c -Iclients/include -Iclients/common
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnet-linux-x86_64
+          path: mixnet
+
+  client-posix-macos:
+    name: POSIX client (macOS arm64)
+    runs-on: macos-14
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build client
+        run: cc -O2 -pthread -o mixnet clients/posix/mixnet.c clients/common/mixnet_packet.c -Iclients/include -Iclients/common
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnet-macos-arm64
+          path: mixnet
+
+  genesis:
+    name: Genesis ROM (SGDK 2.11)
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK (rescomp/sizebnd)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download SGDK 2.11
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/Stephane-D/SGDK/releases/download/v2.11/sgdk211.7z" -OutFile "$env:RUNNER_TEMP\sgdk211.7z"
+          New-Item -ItemType Directory -Path "$env:GITHUB_WORKSPACE\sgdk211"
+          if (Test-Path "$env:ProgramFiles\7-Zip\7z.exe") {
+            & "$env:ProgramFiles\7-Zip\7z.exe" x "$env:RUNNER_TEMP\sgdk211.7z" "-o$env:GITHUB_WORKSPACE\sgdk211" | Out-Null
+          } else {
+            tar -xf "$env:RUNNER_TEMP\sgdk211.7z" -C "$env:GITHUB_WORKSPACE\sgdk211"
+          }
+          Test-Path "$env:GITHUB_WORKSPACE\sgdk211\makefile.gen"
+      - name: Build ROM
+        env:
+          GDK_WIN: ${{ github.workspace }}\sgdk211
+        run: cmd /c build.bat genesis
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: genesis-rom
+          path: clients/genesis/out/rom.bin
+
+  amiga:
+    name: Amiga client (m68k)
+    runs-on: ubuntu-22.04
+    container: amigadev/m68k-amigaos-gcc:latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build client
+        run: |
+          export PATH="$PATH:/opt/m68k-amigaos/bin:/usr/local/m68k-amigaos/bin"
+          m68k-amigaos-gcc -O2 -std=c99 -o mixnet clients/amiga/mixnet.c clients/common/mixnet_packet.c -lpthread -lsocket -Iclients/include -Iclients/common
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnet-amiga-m68k
+          path: mixnet
+
+  ps2:
+    name: PS2 client (EE ELF)
+    runs-on: ubuntu-22.04
+    container: ps2dev/ps2dev:latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ELF
+        run: make -C clients/ps2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixnet-ps2-elf
+          path: clients/ps2/mixnet_ps2.elf

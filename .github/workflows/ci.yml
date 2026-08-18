@@ -1,0 +1,12 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-all:
+    name: Build all platforms
+    uses: ./.github/workflows/build-platforms.yml

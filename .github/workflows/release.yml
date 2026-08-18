@@ -1,0 +1,37 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-all:
+    name: Build all platforms
+    uses: ./.github/workflows/build-platforms.yml
+
+  publish:
+    name: Publish GitHub Release
+    needs: build-all
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Check artifacts
+        run: find assets -type f | sort
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: false
+          files: |
+            assets/**/*
