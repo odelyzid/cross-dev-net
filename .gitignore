@@ -17,6 +17,10 @@ server/target/
 # --- PS1 / PSYQ build output
 clients/psx/out/
 
+# --- PS2 build output
+clients/ps2/*.elf
+clients/ps2/*_irx.c
+
 # --- C client builds
 clients/**/*.exe
 clients/**/mixnet
