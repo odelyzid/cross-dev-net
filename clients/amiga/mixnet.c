@@ -13,7 +13,6 @@
 #include "../include/mixnet_proto.h"
 #include "../common/mixnet_packet.h"
 #include <sys/types.h>
-#include <stdint.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
